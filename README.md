@@ -10,6 +10,8 @@ This repository contains a prototype parser for GainText documents.
 
 See [gaintext.org](http://gaintext.org/) for more details.
 
+[![Build Status](https://travis-ci.org/gaintext/gaintext-engine.svg?branch=master)](https://travis-ci.org/gaintext/gaintext-engine)
+
 
 Design
 ------
