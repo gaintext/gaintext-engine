@@ -8,14 +8,24 @@
 // (at your option) any later version.
 //
 
+infix operator <*>
 
-public struct IndentParser: BlockParser {
-
-    public init(indent: String? = nil) {
-        self.indent = indent
+public func <*> <R1, R2>(lhs: Parser<R1>, rhs: @escaping (R1) -> Parser<R2>) -> Parser<R2> {
+    return Parser { cursor in
+        let (lhsResult, lhsTail) = try lhs.parse(cursor)
+        return try rhs(lhsResult).parse(lhsTail)
     }
+}
 
-    public func parseIndent(_ cursor: Cursor) throws -> String {
+public func lookup<R>(_ p: Parser<R>) -> Parser<R> {
+    return Parser { cursor in
+        let (result, _) = try p.parse(cursor)
+        return (result, cursor)
+    }
+}
+
+private func detectIndentationParser() -> Parser<String> {
+    return Parser { cursor in
         var cursor = cursor
         let start = cursor.position
         while cursor.atWhitespace {
@@ -24,11 +34,13 @@ public struct IndentParser: BlockParser {
         guard cursor.position != start else {
             throw ParserError.notFound(position: start)
         }
-        return cursor.head(from: start)
+        return (cursor.head(from: start), cursor)
     }
+}
 
-    func parseBlock(indented prefix: String, _ cursor: Cursor) throws -> ([Line], Cursor) {
-        assert(!prefix.isEmpty)
+func indentedBlockParser(prefix: String) -> Parser<[Line]> {
+    assert(!prefix.isEmpty)
+    return Parser { cursor in
         var outerCursor = cursor
         var nextCursor = outerCursor
         var lines: [Line] = []
@@ -53,17 +65,12 @@ public struct IndentParser: BlockParser {
         }
         return (lines, nextCursor)
     }
+}
 
-    public func parse(_ cursor: Cursor) throws -> ([Line], Cursor) {
-        if let indent = indent {
-            return try parseBlock(indented: indent, cursor)
-        } else {
-            let indent = try parseIndent(cursor)
-            return try parseBlock(indented: indent, cursor)
-        }
+public func indentationParser(prefix: String? = nil) -> Parser<[Line]> {
+    if let prefix = prefix {
+        return indentedBlockParser(prefix: prefix)
+    } else {
+        return lookup(detectIndentationParser()) <*> indentedBlockParser
     }
-
-    static let nodeType = ElementNodeType(name: "indented")
-
-    let indent: String?
 }

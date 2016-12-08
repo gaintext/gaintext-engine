@@ -25,7 +25,7 @@ public struct ElementWithIndentedContent: ElementParser {
         }
         try cursor.advanceLine()
 
-        let indented = IndentParser()
+        let indented = indentationParser()
         do {
             let (block, newCursor2) = try indented.parse(cursor)
             element.parseBody(block: block, parent: cursor)

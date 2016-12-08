@@ -15,18 +15,11 @@ import XCTest
 import Nimble
 
 
-func parse(_ r: BlockParser, _ cursor: Cursor, file: FileString = #file, line: UInt = #line) throws -> ([Line], Cursor) {
-    return try report(try r.parse(cursor), file: file, line: line)
-}
-func parse(_ r: BlockParser, _ doc: Document, file: FileString = #file, line: UInt = #line) throws -> ([Line], Cursor) {
-    return try report(try r.parse(doc.start()), file: file, line: line)
-}
-
 class IndentParserTests: XCTestCase {
 
     func testSuccess() throws {
         let doc = Document(source: "  a\n  b\n")
-        let indented = IndentParser(indent: "  ")
+        let indented = indentationParser(prefix: "  ")
 
         let (lines, cursor) = try parse(indented, doc)
         expect(lines).to(haveCount(2))

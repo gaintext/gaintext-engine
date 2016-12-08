@@ -9,14 +9,18 @@
 //
 
 
+/// Parser returning a `Result`.
+public struct Parser<Result> {
+    /// Parse the input at the specified position.
+    /// - returns: the parsed result and the next position.
+    /// - throws: an `ParserError` if there was no match.
+    public let parse: (Cursor) throws -> (Result, Cursor)
+}
+
 /// Protocol to parse a part of the document and turn it into nodes
 public protocol NodeParser {
     /// Parse a document and parse nodes
     /// - Parameter cursor: where to start
     /// - Returns: parsed nodes and new cursor for further parsing
     func parse(_ cursor: Cursor) throws -> ([Node], Cursor)
-}
-
-protocol BlockParser {
-    func parse(_ cursor: Cursor) throws -> ([Line], Cursor)
 }
