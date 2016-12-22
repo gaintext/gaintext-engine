@@ -8,10 +8,11 @@
 // (at your option) any later version.
 //
 
+import Runes
+
 
 public protocol SpanParser {
-    typealias EndMarker = (Cursor) -> Cursor?
-    func parse(cursor: Cursor, until: EndMarker) throws -> ([Node], Cursor)
+    func parse(cursor: Cursor, until: Parser<()>) throws -> ([Node], Cursor)
 }
 
 private class TextNodeType: NodeType {
@@ -34,14 +35,14 @@ public struct TextWithMarkupParser: SpanParser {
         self.markup = markup
     }
 
-    public func parse(cursor: Cursor, until endMarker: (Cursor) -> Cursor?) throws -> ([Node], Cursor) {
+    public func parse(cursor: Cursor, until endMarker: Parser<()>) throws -> ([Node], Cursor) {
         var cursor = cursor
         var startOfText = cursor.position
         cursor.markStartOfWord()
 
-        if let endCursor = endMarker(cursor) {
-            return ([], endCursor)
-        }
+        do {
+            return try (endMarker *> pure([])).parse(cursor)
+        } catch is ParserError {}
 
         var nodes: [Node] = []
         func addTextNode() {
@@ -61,11 +62,12 @@ public struct TextWithMarkupParser: SpanParser {
             } catch {
                 try! cursor.advance()
             }
-            if let endCursor = endMarker(cursor) {
+            do {
+                let (_, tail) = try endMarker.parse(cursor)
                 addTextNode()
 
-                return (nodes, endCursor)
-            }
+                return (nodes, tail)
+            } catch is ParserError {}
         }
         throw ParserError.notFound(position: cursor.position)
     }
@@ -77,18 +79,20 @@ public struct RawTextParser: SpanParser {
 
     public init() {}
 
-    public func parse(cursor: Cursor, until endMarker: (Cursor) -> Cursor?) throws -> ([Node], Cursor) {
+    public func parse(cursor: Cursor, until endMarker: Parser<()>) throws -> ([Node], Cursor) {
         var cursor = cursor
         let startOfText = cursor.position
         while !cursor.atEndOfLine {
-            if let endCursor = endMarker(cursor) {
+            do {
+                let (_, tail) = try endMarker.parse(cursor)
                 guard cursor.position != startOfText else {
-                    return ([], endCursor)
+                    return ([], tail)
                 }
                 let text = createTextNode(start: startOfText, end: cursor)
-                return ([text], endCursor)
+                return ([text], tail)
+            } catch is ParserError {
+                try! cursor.advance()
             }
-            try! cursor.advance()
         }
 
         throw ParserError.notFound(position: cursor.position)
@@ -100,14 +104,7 @@ public struct RawTextParser: SpanParser {
 public class LineParser: NodeParser {
     public init() {}
 
-    private func endOfLineMarker(_ cursor: Cursor) -> Cursor? {
-        var cursor = cursor
-        guard cursor.atEndOfLine else { return nil }
-        try! cursor.advanceLine()
-        return cursor
-    }
-
     public func parse(_ cursor: Cursor) throws -> ([Node], Cursor) {
-        return try cursor.scope.spanParser.parse(cursor: cursor, until: endOfLineMarker)
+        return try cursor.scope.spanParser.parse(cursor: cursor, until: endOfLine)
     }
 }

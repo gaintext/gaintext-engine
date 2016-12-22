@@ -98,10 +98,7 @@ extension SpanParser {
     /// Returns an error node instead of throwing.
     func parseLine(_ cursor: Cursor, error nodeType: ErrorNodeType) -> ([Node], Cursor) {
         do {
-            return try parse(cursor: cursor) { cursor in
-                if cursor.atEndOfLine  { return cursor }
-                return nil
-            }
+            return try parse(cursor: cursor, until: satisfying {$0.atEndOfLine})
         } catch {
             let (errorNode, errorCursor) = createLineErrorNode(at: cursor, nodeType)
             return ([errorNode], errorCursor)

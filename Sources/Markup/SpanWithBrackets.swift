@@ -9,17 +9,12 @@
 //
 
 import Engine
+import Runes
 
 public struct SpanWithBrackets: ElementParser {
 
     public init() {}
 
-    static func endMarker(_ cursor: Cursor) -> Cursor? {
-        var cursor = cursor
-        guard cursor.at(oneOf: "]") else { return nil }
-        try! cursor.advance()
-        return cursor
-    }
     public func parse(_ cursor: Cursor) throws -> ([Node], Cursor) {
         var cursor = cursor
         let start = cursor.position
@@ -31,7 +26,7 @@ public struct SpanWithBrackets: ElementParser {
             throw ParserError.notFound(position: start)
         }
         cursor = try parseSpanBody(element: element, cursor: bodyCursor,
-                                       until: SpanWithBrackets.endMarker)
+                                       until: literal("]") *> pure(()))
 
         let node = element.createNode(start: start, end: cursor)
         return ([node], cursor)

@@ -13,7 +13,7 @@ public protocol ElementParser: NodeParser {}
 
 extension ElementParser {
 
-    public func parseSpanBody(element: Element, cursor: Cursor, until endMarker: SpanParser.EndMarker) throws -> Cursor {
+    public func parseSpanBody(element: Element, cursor: Cursor, until endMarker: Parser<()>) throws -> Cursor {
         var cursor = cursor
         let oldScope = cursor.scope
         cursor.scope = element.childScope()

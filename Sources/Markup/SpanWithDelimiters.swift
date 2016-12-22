@@ -9,6 +9,7 @@
 //
 
 import Engine
+import Runes
 
 public struct SpanWithDelimiters: ElementParser {
 
@@ -31,15 +32,10 @@ public struct SpanWithDelimiters: ElementParser {
             throw ParserError.notFound(position: start)
         }
 
-        cursor = try parseSpanBody(element: element, cursor: cursor) {
-            var end = $0
-            guard !end.atEndOfLine else { return nil }
-            guard !end.atStartOfWord else { return nil }
-            guard end.char == delimiter else { return nil }
-            try! end.advance()
-            return end
-        }
-
+        let endMarker = satisfying {!$0.atStartOfWord}
+                     *> literal(delimiter)
+                     *> pure(())
+        cursor = try parseSpanBody(element: element, cursor: cursor, until: endMarker)
         let node = element.createNode(start: start, end: cursor)
         return ([node], cursor)
     }

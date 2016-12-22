@@ -97,7 +97,7 @@ open class Element {
     ///
     /// Either uses the element-type specific parser or a default parser
     /// from the current scope.
-    public func parseSpan(cursor: Cursor, until endMarker: SpanParser.EndMarker) throws -> Cursor {
+    public func parseSpan(cursor: Cursor, until endMarker: Parser<()>) throws -> Cursor {
         let (nodes, next) = try titleParser.parse(cursor: cursor, until: endMarker)
         title += nodes
         return next
