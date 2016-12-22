@@ -10,6 +10,14 @@
 
 import Runes
 
+precedencegroup AdditiveParserPrecedence {
+    associativity: left
+    higherThan: RunesAlternativePrecedence
+    lowerThan: RunesApplicativePrecedence
+}
+infix operator <+>: AdditiveParserPrecedence
+
+
 public struct DisjunctiveParser: NodeParser {
     public init(list: [NodeParser]) {
         self.list = list
@@ -82,22 +90,23 @@ extension DeferredParser: CustomStringConvertible {
     }
 }
 
+
 public func <^> <From, To>(lhs: @escaping (From) throws -> To, rhs: Parser<From>) -> Parser<To> {
     return rhs.map(lhs)
 }
 
-func <*> <From, To>(lhs: Parser<(From)->To>, rhs: Parser<From>) -> Parser<To> {
+public func <*> <From, To>(lhs: Parser<(From)->To>, rhs: Parser<From>) -> Parser<To> {
     return lhs >>- { $0 <^> rhs }
 }
 
-func <* <Left, Right>(_ lhs: Parser<Left>, _ rhs: Parser<Right>) -> Parser<Left> {
+public func <* <Left, Right>(_ lhs: Parser<Left>, _ rhs: Parser<Right>) -> Parser<Left> {
     return Parser { input in
         let (result, rhsInput) = try lhs.parse(input)
         let (_, tail) = try rhs.parse(rhsInput)
         return (result, tail)
     }
 }
-func *> <Left, Right>(_ lhs: Parser<Left>, _ rhs: Parser<Right>) -> Parser<Right> {
+public func *> <Left, Right>(_ lhs: Parser<Left>, _ rhs: Parser<Right>) -> Parser<Right> {
     return Parser { input in
         let (_, rhsInput) = try lhs.parse(input)
         let (result, tail) = try rhs.parse(rhsInput)
@@ -105,7 +114,7 @@ func *> <Left, Right>(_ lhs: Parser<Left>, _ rhs: Parser<Right>) -> Parser<Right
     }
 }
 
-func <|> <Result>(_ lhs: Parser<Result>, _ rhs: Parser<Result>) -> Parser<Result> {
+public func <|> <Result>(_ lhs: Parser<Result>, _ rhs: Parser<Result>) -> Parser<Result> {
     return Parser { input in
         do {
             return try lhs.parse(input)
@@ -129,8 +138,14 @@ public func -<< <R1, R2>(lhs: @escaping (R1) -> Parser<R2>, rhs: Parser<R1>) -> 
     }
 }
 
-infix operator <+>: RunesApplicativeSequencePrecedence
-func <+> <Element>(_ lhs: Parser<[Element]>, _ rhs: Parser<[Element]>) -> Parser<([Element])> {
+public func <+>(_ lhs: Parser<String>, _ rhs: Parser<String>) -> Parser<String> {
+    return Parser { input in
+        let (lhsResult, rhsInput) = try lhs.parse(input)
+        let (rhsResult, tail) = try rhs.parse(rhsInput)
+        return (lhsResult + rhsResult, tail)
+    }
+}
+public func <+> <Element>(_ lhs: Parser<[Element]>, _ rhs: Parser<[Element]>) -> Parser<[Element]> {
     return Parser { input in
         let (lhsResult, rhsInput) = try lhs.parse(input)
         let (rhsResult, tail) = try rhs.parse(rhsInput)
@@ -139,10 +154,11 @@ func <+> <Element>(_ lhs: Parser<[Element]>, _ rhs: Parser<[Element]>) -> Parser
 }
 
 extension Parser {
-    func map<Mapped>(_ f: @escaping (Result) throws -> Mapped) -> Parser<Mapped> {
+    public func map<Mapped>(_ f: @escaping (Result) throws -> Mapped?) -> Parser<Mapped> {
         return Parser<Mapped> { input in
             let (result, tail) = try self.parse(input)
-            return (try f(result), tail)
+            guard let mapped = try f(result) else { throw ParserError.notFound(position: input.position) }
+            return (mapped, tail)
         }
     }
 }
@@ -154,15 +170,6 @@ public func lookahead<R>(_ p: Parser<R>) -> Parser<R> {
     }
 }
 
-public func optional<Result>(_ p: Parser<Result>, otherwise: Result) -> Parser<Result> {
-    return Parser { input in
-        do {
-            return try p.parse(input)
-        } catch is ParserError {
-            return (otherwise, input)
-        }
-    }
-}
 public func optional<Result>(_ p: Parser<Result>) -> Parser<Result?> {
     return Parser { input in
         do {
@@ -173,8 +180,17 @@ public func optional<Result>(_ p: Parser<Result>) -> Parser<Result?> {
         }
     }
 }
+public func optional<Result>(_ p: Parser<Result>, otherwise: Result) -> Parser<Result> {
+    return Parser { input in
+        do {
+            return try p.parse(input)
+        } catch is ParserError {
+            return (otherwise, input)
+        }
+    }
+}
 
-public func lazy<Result>(_ p: @autoclosure @escaping () -> Parser<Result>) -> Parser<Result> {
+public func lazy<Result>(_ p: @escaping @autoclosure () -> Parser<Result>) -> Parser<Result> {
     return Parser { input in
         try p().parse(input)
     }

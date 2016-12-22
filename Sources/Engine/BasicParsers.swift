@@ -8,6 +8,164 @@
 // (at your option) any later version.
 //
 
+import Runes
+
+
+public func literal(_ token: Character) -> Parser<String> {
+    return Parser<String> { input in
+        guard !input.atEndOfBlock else {
+            throw ParserError.endOfScope(position: input.position)
+        }
+        guard input.char == token else {
+            throw ParserError.notFound(position: input.position)
+        }
+        var cursor = input
+        try! cursor.advance()
+        return (String(token), cursor)
+    }
+}
+
+public func literal(_ token: String) -> Parser<String> {
+    let count = token.characters.count
+
+    return Parser<String> { input in
+        var cursor = input
+        guard !cursor.atEndOfBlock else {
+            throw ParserError.endOfScope(position: cursor.position)
+        }
+        let text = cursor.tail
+        guard text.hasPrefix(token) else {
+            throw ParserError.notFound(position: cursor.position)
+        }
+        try! cursor.advance(by: count)
+        return (token, cursor)
+    }
+}
+
+public func collect(min: Int = 1, takeWhile: @escaping (Cursor) -> Bool) -> Parser<String> {
+    return Parser<String> { input in
+        var cursor = input
+        var result = ""
+        var count = 0
+        while !cursor.atEndOfLine && takeWhile(cursor) {
+            result.append(cursor.char)
+            try! cursor.advance()
+            count += 1
+        }
+        guard count >= min else {
+            throw ParserError.notFound(position: cursor.position)
+        }
+        return (result, cursor)
+
+    }
+}
+public func collect(min: Int = 1, until: @escaping (Cursor) -> Bool) -> Parser<String> {
+    return Parser<String> { input in
+        var cursor = input
+        var result = ""
+        var count = 0
+        while !cursor.atEndOfLine && !until(cursor) {
+            result.append(cursor.char)
+            try! cursor.advance()
+            count += 1
+        }
+        guard count >= min else {
+            throw ParserError.notFound(position: cursor.position)
+        }
+        return (result, cursor)
+
+    }
+}
+public func collect(min: Int = 1, fromSet: String) -> Parser<String> {
+    return collect(min: min, takeWhile: { cursor in cursor.at(oneOf: fromSet) })
+}
+public func collect(min: Int = 1, fromSet: Set<Character>) -> Parser<String> {
+    return collect(min: min, takeWhile: { cursor in cursor.at(oneOf: fromSet) })
+}
+
+public var character: Parser<String> {
+    return Parser { input in
+        guard !input.atEndOfBlock && !input.atEndOfLine else {
+            throw ParserError.notFound(position: input.position)
+        }
+        let result = String(input.char)
+        var cursor = input
+        try cursor.advance()
+        return (result, cursor)
+    }
+}
+
+public var word: Parser<String> {
+    return collect(until: { $0.atWhitespace })
+}
+
+public var identifier: Parser<String> {
+    // TBD
+    let identifierChars = "_@0123456789"
+        + "abcdefghijklmnopqrstuvwxyz"
+        + "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    return collect(fromSet: Set(identifierChars.characters))
+}
+
+public var whitespace: Parser<String> {
+    return collect(takeWhile: { $0.atWhitespace })
+}
+
+
+public var quotedString: Parser<String> {
+    return Parser<String> { input in
+        var cursor = input
+        let start = cursor.position
+
+        guard cursor.at(oneOf: "\"") else {
+            throw ParserError.notFound(position: start)
+        }
+        try! cursor.advance()
+
+        var result = ""
+        loop: while true {
+            guard !cursor.atEndOfLine else {
+                throw ParserError.notFound(position: start)
+            }
+            switch cursor.char {
+            case "\"":
+                break loop
+            case "\\":
+                try! cursor.advance()
+                guard !cursor.atEndOfLine else {
+                    throw ParserError.notFound(position: start)
+                }
+                result.append(cursor.char)
+            default:
+                result.append(cursor.char)
+            }
+            try! cursor.advance()
+        }
+        try! cursor.advance()
+        return (result, cursor)
+    }
+}
+
+public func satisfying(_ f: @escaping (Cursor) -> Bool) -> Parser<()> {
+    return Parser { input in
+        guard f(input) else {
+            throw ParserError.notFound(position: input.position)
+        }
+        return ((), input)
+    }
+}
+
+public func pure<Result>(_ value: Result) -> Parser<Result> {
+    return Parser { cursor in (value, cursor) }
+}
+
+private var advanceLine = Parser<()> { input in
+    var cursor = input
+    try cursor.advanceLine()
+    return ((), cursor)
+}
+public var endOfLine = satisfying {$0.atEndOfLine} *> advanceLine
+
 
 public struct LiteralParser: NodeParser {
     public init(token: String) {

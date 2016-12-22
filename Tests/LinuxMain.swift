@@ -5,7 +5,16 @@ import XCTest
 //@testable import ElementsTests
 
 XCTMain([
+
      // EngineTests
+     testCase(LiteralCharacterParserTests.allTests),
+     testCase(LiteralStringParserTests.allTests),
+     testCase(CollectWhileParserTests.allTests),
+     testCase(CollectUntilParserTests.allTests),
+     testCase(CharacterParserTests.allTests),
+     testCase(MappedParserTests.allTests),
+     testCase(LookaheadParserTests.allTests),
+     testCase(LazyParserTests.allTests),
      testCase(SequenceParserTests.allTests),
      testCase(DisjunctiveParserTests.allTests),
      testCase(CachedParserTests.allTests),

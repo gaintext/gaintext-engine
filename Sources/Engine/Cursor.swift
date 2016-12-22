@@ -160,6 +160,10 @@ extension Cursor {
         guard !atEndOfBlock && !atEndOfLine else { return false }
         return characters.contains(String(char))
     }
+    public func at(oneOf characters: Set<Character>) -> Bool {
+        guard !atEndOfBlock && !atEndOfLine else { return false }
+        return characters.contains(char)
+    }
 
     public var atWhitespaceOnlyLine: Bool {
         if line.start.index == line.endIndex { return true }

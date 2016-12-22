@@ -10,6 +10,7 @@
 
 @testable import Engine
 import GainText
+import Runes
 
 import XCTest
 import Nimble
@@ -238,6 +239,116 @@ class CachedParserTests: XCTestCase {
             ("testRightRecursionSuccess2", testRightRecursionSuccess2),
             ("testRightRecursionFailure", testRightRecursionFailure),
             ("testLeftRecursionSuccess1", testLeftRecursionSuccess1),
+        ]
+    }
+}
+
+
+class MappedParserTests: XCTestCase {
+
+    func test1() throws {
+        let doc = Document(source: "123")
+        let input = doc.start()
+        let p = word.map { Int($0) }
+
+        let (res, tail) = try p.parse(input)
+        expect(res) == 123
+        expect(tail.position.left) == "1:3"
+    }
+
+    func test2() throws {
+        let doc = Document(source: "abc")
+        let input = doc.start()
+        let p = word.map { Int($0) }
+
+        expect {try p.parse(input)}.to(throwError())
+    }
+
+    func test3() throws {
+        let doc = Document(source: "abc")
+        let input = doc.start()
+        let p = word.map { "<" + $0 + ">" }
+
+        let (res, tail) = try p.parse(input)
+        expect(res) == "<abc>"
+        expect(tail.position.left) == "1:3"
+    }
+
+    static var allTests : [(String, (MappedParserTests) -> () throws -> Void)] {
+        return [
+            ("test1", test1),
+            ("test2", test2),
+            ("test3", test3),
+        ]
+    }
+}
+
+class LookaheadParserTests: XCTestCase {
+
+    func test1() throws {
+        let doc = Document(source: "abc")
+        let input = doc.start()
+        let p = lookahead(literal("a"))
+
+        let (res, tail) = try p.parse(input)
+        expect(res) == "a"
+        expect(tail.position.left) == "1:0"
+    }
+
+    func test2() throws {
+        let doc = Document(source: "abc")
+        let input = doc.start()
+        let p = lookahead(literal("b"))
+
+        expect {try p.parse(input)}.to(throwError())
+    }
+
+    static var allTests : [(String, (LookaheadParserTests) -> () throws -> Void)] {
+        return [
+            ("test1", test1),
+            ("test2", test2),
+        ]
+    }
+}
+
+class LazyParserTests: XCTestCase {
+
+    func testRecursive1() throws {
+        let doc = Document(source: "")
+        let input = doc.start()
+        var p: Parser<String>!
+        p = literal("abc") <+> optional(lazy(p), otherwise: "")
+
+        expect {try p.parse(input)}.to(throwError())
+    }
+
+    func testRecursive2() throws {
+        let doc = Document(source: "abcdef")
+        let input = doc.start()
+        var p: Parser<String>!
+        p = literal("abc") <+> optional(lazy(p), otherwise: "")
+
+        let (res, tail) = try p.parse(input)
+        expect(res) == "abc"
+        expect(tail.position.left) == "1:3"
+    }
+
+    func testRecursive3() throws {
+        let doc = Document(source: "abcabcdef")
+        let input = doc.start()
+        var p: Parser<String>!
+        p = literal("abc") <+> optional(lazy(p), otherwise: "")
+
+        let (res, tail) = try p.parse(input)
+        expect(res) == "abcabc"
+        expect(tail.position.left) == "1:6"
+    }
+
+    static var allTests : [(String, (LazyParserTests) -> () throws -> Void)] {
+        return [
+            ("testRecursive1", testRecursive1),
+            ("testRecursive2", testRecursive2),
+            ("testRecursive3", testRecursive3),
         ]
     }
 }
