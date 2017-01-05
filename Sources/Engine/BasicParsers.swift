@@ -83,67 +83,56 @@ public func collect(min: Int = 1, fromSet: Set<Character>) -> Parser<String> {
     return collect(min: min, takeWhile: { cursor in cursor.at(oneOf: fromSet) })
 }
 
-public var character: Parser<String> {
-    return Parser { input in
-        guard !input.atEndOfBlock && !input.atEndOfLine else {
-            throw ParserError.notFound(position: input.position)
-        }
-        let result = String(input.char)
-        var cursor = input
-        try cursor.advance()
-        return (result, cursor)
+public let character = Parser<String> { input in
+    guard !input.atEndOfBlock && !input.atEndOfLine else {
+        throw ParserError.notFound(position: input.position)
     }
+    let result = String(input.char)
+    var cursor = input
+    try cursor.advance()
+    return (result, cursor)
 }
 
-public var word: Parser<String> {
-    return collect(until: { $0.atWhitespace })
-}
+public let word = collect(until: { $0.atWhitespace })
 
-public var identifier: Parser<String> {
-    // TBD
-    let identifierChars = "_@0123456789"
-        + "abcdefghijklmnopqrstuvwxyz"
-        + "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    return collect(fromSet: Set(identifierChars.characters))
-}
+private let identifierChars = "_@0123456789"
+    + "abcdefghijklmnopqrstuvwxyz"
+    + "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+public let identifier = collect(fromSet: Set(identifierChars.characters))
 
-public var whitespace: Parser<String> {
-    return collect(takeWhile: { $0.atWhitespace })
-}
+public let whitespace = collect(takeWhile: { $0.atWhitespace })
 
 
-public var quotedString: Parser<String> {
-    return Parser<String> { input in
-        var cursor = input
-        let start = cursor.position
+public let quotedString = Parser<String> { input in
+    var cursor = input
+    let start = cursor.position
 
-        guard cursor.at(oneOf: "\"") else {
+    guard cursor.at(oneOf: "\"") else {
+        throw ParserError.notFound(position: start)
+    }
+    try! cursor.advance()
+
+    var result = ""
+    loop: while true {
+        guard !cursor.atEndOfLine else {
             throw ParserError.notFound(position: start)
         }
-        try! cursor.advance()
-
-        var result = ""
-        loop: while true {
+        switch cursor.char {
+        case "\"":
+            break loop
+        case "\\":
+            try! cursor.advance()
             guard !cursor.atEndOfLine else {
                 throw ParserError.notFound(position: start)
             }
-            switch cursor.char {
-            case "\"":
-                break loop
-            case "\\":
-                try! cursor.advance()
-                guard !cursor.atEndOfLine else {
-                    throw ParserError.notFound(position: start)
-                }
-                result.append(cursor.char)
-            default:
-                result.append(cursor.char)
-            }
-            try! cursor.advance()
+            result.append(cursor.char)
+        default:
+            result.append(cursor.char)
         }
         try! cursor.advance()
-        return (result, cursor)
     }
+    try! cursor.advance()
+    return (result, cursor)
 }
 
 public func satisfying(_ f: @escaping (Cursor) -> Bool) -> Parser<()> {
@@ -156,7 +145,7 @@ public func satisfying(_ f: @escaping (Cursor) -> Bool) -> Parser<()> {
 }
 
 public func pure<Result>(_ value: Result) -> Parser<Result> {
-    return Parser { cursor in (value, cursor) }
+    return Parser { input in (value, input) }
 }
 
 private var advanceLine = Parser<()> { input in
