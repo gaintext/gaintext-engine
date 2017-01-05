@@ -89,7 +89,7 @@ extension Document {
 
 public enum NodeAttribute {
     case bool(String)
-    case number(String, Int)
+    case number(String, Int) // TBD: Float, Unit
     case text(String, String)
 }
 
@@ -192,7 +192,9 @@ public struct Position {
     }
 }
 
-extension Position {
+extension Position: CustomDebugStringConvertible {
+    public var debugDescription: String { return right }
+
     /// Get the human readable position of the character to the left.
     var left: String {
         return "\(line):\(column)"

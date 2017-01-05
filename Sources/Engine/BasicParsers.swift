@@ -167,6 +167,19 @@ private var advanceLine = Parser<()> { input in
 public var endOfLine = satisfying {$0.atEndOfLine} *> advanceLine
 
 
+public func debug<Result>(_ p: Parser<Result>, file: StaticString = #file, line: Int = #line) -> Parser<Result> {
+    return Parser { input in
+        do {
+            let (result, tail) = try p.parse(input)
+            debugPrint("\(file):\(line): (\(input.position.right)..\(tail.position.left)) parsed '\(result)'")
+            return (result, tail)
+        } catch let e as ParserError {
+            debugPrint("\(file):\(line): (\(input.position.right)..) raised '\(e)'")
+            throw e
+        }
+    }
+}
+
 public struct LiteralParser: NodeParser {
     public init(token: String) {
         self.token = token
