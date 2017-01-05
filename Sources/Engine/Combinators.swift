@@ -170,6 +170,17 @@ public func lookahead<R>(_ p: Parser<R>) -> Parser<R> {
     }
 }
 
+public func not<R>(_ p: Parser<R>) -> Parser<()> {
+    return Parser { input in
+        do {
+            let _ = try p.parse(input)
+        } catch is ParserError {
+            return ((), input)
+        }
+        throw ParserError.notFound(position: input.position)
+    }
+}
+
 public func optional<Result>(_ p: Parser<Result>) -> Parser<Result?> {
     return Parser { input in
         do {
@@ -193,5 +204,20 @@ public func optional<Result>(_ p: Parser<Result>, otherwise: Result) -> Parser<R
 public func lazy<Result>(_ p: @escaping @autoclosure () -> Parser<Result>) -> Parser<Result> {
     return Parser { input in
         try p().parse(input)
+    }
+}
+
+public func list<Result, Sep>(_ parser: Parser<[Result]>, separator: Parser<Sep>) -> Parser<[Result]> {
+    return Parser { input in
+        var (result, tail) = try parser.parse(input)
+        while true {
+            do {
+                let (item, next) = try (separator *> parser).parse(tail)
+                tail = next
+                result += item
+            } catch is ParserError {
+                return (result, tail)
+            }
+        }
     }
 }
