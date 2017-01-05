@@ -11,6 +11,7 @@
 import Engine
 import Blocks
 import Markup
+import Runes
 
 private var blockParser: NodeParser {
 
@@ -30,14 +31,10 @@ private var blockParser: NodeParser {
     )
 }
 
-private var spanParser: SpanParser {
-    let markup = DisjunctiveParser(list: [
-        Escaped(),
-        SpanWithBrackets(),
-        SpanWithDelimiters()
-    ])
-    return TextWithMarkupParser(markup: CachedParser(markup))
-}
+private let spanParser = TextWithMarkupParser(markup: CachedParser(WrapParser(
+    escaped <|> spanWithBrackets <|> spanWithDelimiters
+)))
+
 
 private func registerElements(global scope: Scope) {
     let blockElements = [

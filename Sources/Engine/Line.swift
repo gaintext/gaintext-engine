@@ -14,6 +14,16 @@ import Runes
 public protocol SpanParser {
     func parse(cursor: Cursor, until: Parser<()>) throws -> ([Node], Cursor)
 }
+// TBD: help transition from NodeParser to Parser<[Node]>
+extension SpanParser {
+    var parser: (Parser<()>) -> Parser<[Node]> {
+        return { endMarker in
+            return Parser { input in
+                return try self.parse(cursor: input, until: endMarker)
+            }
+        }
+    }
+}
 
 private class TextNodeType: NodeType {
     let name = "text"

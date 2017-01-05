@@ -24,3 +24,17 @@ public protocol NodeParser {
     /// - Returns: parsed nodes and new cursor for further parsing
     func parse(_ cursor: Cursor) throws -> ([Node], Cursor)
 }
+
+// TBD: help transition from NodeParser to Parser<[Node]>
+extension NodeParser {
+    public var parser: Parser<[Node]> {
+        return Parser(parse: self.parse)
+    }
+}
+public struct WrapParser: NodeParser {
+    let wrapped: Parser<[Node]>
+    public init(_ p: Parser<[Node]>) { wrapped = p }
+    public func parse(_ input: Cursor) throws -> ([Node], Cursor) {
+        return try wrapped.parse(input)
+    }
+}

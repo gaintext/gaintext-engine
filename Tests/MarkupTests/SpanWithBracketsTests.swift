@@ -20,26 +20,26 @@ class SpanWithBracketsTests: XCTestCase {
 
     func testNoBracket() throws {
         let doc = Document(source: "no[]")
-        let p = SpanWithBrackets()
+        let p = spanWithBrackets
         expect(try p.parse(doc.start())).to(throwError())
     }
 
     func testEmptyBracket() throws {
         let doc = Document(source: "[]")
-        let p = SpanWithBrackets()
+        let p = spanWithBrackets
         expect(try p.parse(doc.start())).to(throwError())
     }
 
     func testNoClosingBracket() throws {
         let doc = Document(source: "[raw:")
-        let p = SpanWithBrackets()
+        let p = spanWithBrackets
         expect(try p.parse(doc.start())).to(throwError())
     }
 
     func testRawElement1() throws {
         let doc = Document(source: "[test:text]stuff")
         doc.global.markupRegistry.register(ElementType("test"))
-        let p = SpanWithBrackets()
+        let p = spanWithBrackets
 
         let (nodes, cursor) = try parse(p, doc)
         expect(nodes).to(haveCount(1))
@@ -60,7 +60,7 @@ class SpanWithBracketsTests: XCTestCase {
     func testRawElement2() throws {
         let doc = Document(source: "[test: text] stuff")
         doc.global.markupRegistry.register(ElementType("test"))
-        let p = SpanWithBrackets()
+        let p = spanWithBrackets
 
         let (nodes, cursor) = try parse(p, doc)
         expect(nodes).to(haveCount(1))

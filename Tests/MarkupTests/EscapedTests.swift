@@ -46,8 +46,11 @@ class EscapedTests: XCTestCase {
         let (nodes, cursor) = try parse(p, doc)
         expect(nodes).to(haveCount(1))
 
-        expect(nodes[0].nodeType.name) == "error"
+        expect(nodes[0].nodeType.name) == "raw"
         expect(nodes[0].sourceRange) == "1:1..1:1"
+        expect(nodes[0].children).to(haveCount(1))
+
+        expect(nodes[0].children[0].nodeType.name) == "error"
 
         expect(cursor.atEndOfBlock) == true
     }

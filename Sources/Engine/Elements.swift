@@ -69,13 +69,13 @@ open class Element {
         return cursor
     }
 
-    private var titleParser: SpanParser {
+    fileprivate var titleParser: SpanParser {
         if let p = type.titleParser {
             return p
         }
         return scope.spanParser
     }
-    private var blockParser: NodeParser {
+    fileprivate var blockParser: NodeParser {
         if let p = type.bodyParser {
             return p
         }
@@ -151,6 +151,17 @@ open class Element {
     open func finish(_ node: Node) {
     }
 }
+
+let elementBodyParser = Parser<Parser<[Node]>> { input in
+    let element = input.scope.element!
+    return (element.blockParser.parser, input)
+}
+
+let elementTitleParser = Parser<(Parser<()>) -> Parser<[Node]>> { input in
+    let element = input.scope.element!
+    return (element.titleParser.parser, input)
+}
+
 
 /// Describes one type of elements and how to parse it.
 ///
@@ -287,6 +298,9 @@ open class Scope {
 
     let blockParser: NodeParser
     let spanParser: SpanParser
+
+    /// the element which is currently being parsed
+    var element: Element? = nil
 }
 
 extension Scope {

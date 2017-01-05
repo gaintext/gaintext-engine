@@ -11,32 +11,14 @@
 import Engine
 import Runes
 
-public struct SpanWithDelimiters: ElementParser {
+private let startOfWord = satisfying {$0.atStartOfWord}
+private let noStartOfWord = satisfying {!$0.atStartOfWord}
+private let noWhitespace = satisfying {!$0.atWhitespace}
 
-    public init() {}
-
-    public func parse(_ cursor: Cursor) throws -> ([Node], Cursor) {
-        var cursor = cursor
-        let start = cursor.position
-        let delimiter = cursor.char
-
-        guard cursor.atStartOfWord else {
-            throw ParserError.notFound(position: start)
-        }
-        try! cursor.advance()
-        guard !cursor.atWhitespace else {
-            throw ParserError.notFound(position: start)
-        }
-        let key = "span:\(delimiter)"
-        guard let element = cursor.scope.markup(name: key) else {
-            throw ParserError.notFound(position: start)
-        }
-
-        let endMarker = satisfying {!$0.atStartOfWord}
-                     *> literal(delimiter)
-                     *> pure(())
-        cursor = try parseSpanBody(element: element, cursor: cursor, until: endMarker)
-        let node = element.createNode(start: start, end: cursor)
-        return ([node], cursor)
+public let spanWithDelimiters = element(
+    startOfWord *> character <* noWhitespace >>- { delimiter in
+        elementCreateMarkupParser(name: "span:\(delimiter)")
+        *>
+        elementSpanBody(until: noStartOfWord <* literal(delimiter))
     }
-}
+)

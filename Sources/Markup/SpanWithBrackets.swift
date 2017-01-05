@@ -11,24 +11,8 @@
 import Engine
 import Runes
 
-public struct SpanWithBrackets: ElementParser {
-
-    public init() {}
-
-    public func parse(_ cursor: Cursor) throws -> ([Node], Cursor) {
-        var cursor = cursor
-        let start = cursor.position
-        guard cursor.at(oneOf: "[") else {
-            throw ParserError.notFound(position: start)
-        }
-        try! cursor.advance()
-        guard let (element, bodyCursor) = detectMarkupElementStart(cursor) else {
-            throw ParserError.notFound(position: start)
-        }
-        cursor = try parseSpanBody(element: element, cursor: bodyCursor,
-                                       until: literal("]") *> pure(()))
-
-        let node = element.createNode(start: start, end: cursor)
-        return ([node], cursor)
-    }
+public var spanWithBrackets: Parser<[Node]> {
+    return element(
+        literal("[") *> elementStartMarkupParser *> elementSpanBody(until: literal("]"))
+    )
 }
