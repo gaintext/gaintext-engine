@@ -9,31 +9,20 @@
 //
 
 import Engine
+import Runes
 
-public struct ElementWithIndentedContent: ElementParser {
 
-    public func parse(_ cursor: Cursor) throws -> ([Node], Cursor) {
-        let start = cursor.position
+public let elementWithIndentedContent = element(
+    elementStartBlockParser *> optional(whitespace) *> elementTitleLine *>
+    endOfLine *>
+    optional(indentationParser >>- subBlock(elementBody), otherwise: ())
+)
 
-        guard let (element, newCursor) = detectBlockElementStart(cursor) else {
-            throw ParserError.notFound(position: start)
-        }
-        var cursor = newCursor
-        cursor.skipWhitespace()
-        if !cursor.atEndOfLine {
-             element.parseTitle(cursor: cursor)
-        }
-        try cursor.advanceLine()
+private let errorNoElement = errorLine(errorType: ErrorNodeType("no element"))
 
-        let indented = indentationParser()
-        do {
-            let (block, newCursor2) = try indented.parse(cursor)
-            element.parseBody(block: block, parent: cursor)
-            cursor = newCursor2
-        } catch {}
-
-        let node = element.createNode(start: start, end: cursor)
-
-        return ([node], cursor)
-    }
-}
+public let elementBlockParser =
+    list(first: elementWithIndentedContent,
+         following: satisfying {!$0.atEndOfBlock && !$0.atWhitespaceOnlyLine} *>
+            (elementWithIndentedContent <|> errorNoElement))
+    <*
+    skipEmptyLines

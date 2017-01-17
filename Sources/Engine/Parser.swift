@@ -15,6 +15,9 @@ public struct Parser<Result> {
     /// - returns: the parsed result and the next position.
     /// - throws: an `ParserError` if there was no match.
     public let parse: (Cursor) throws -> (Result, Cursor)
+    public init(parse: @escaping (Cursor) throws -> (Result, Cursor)) {
+        self.parse = parse
+    }
 }
 
 /// Protocol to parse a part of the document and turn it into nodes

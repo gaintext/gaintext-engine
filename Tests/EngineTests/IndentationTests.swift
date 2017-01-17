@@ -19,7 +19,7 @@ class IndentParserTests: XCTestCase {
 
     func testSuccess() throws {
         let doc = Document(source: "  a\n  b\n")
-        let indented = indentationParser(prefix: "  ")
+        let indented = indentedBlockParser(prefix: "  ")
 
         let (lines, cursor) = try parse(indented, doc)
         expect(lines).to(haveCount(2))

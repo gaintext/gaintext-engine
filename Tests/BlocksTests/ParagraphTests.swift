@@ -19,30 +19,30 @@ class ParagraphTests: XCTestCase {
 
     func testReject1() throws {
         let doc = Document(source: "")
-        let para = Paragraph()
+        let p = paragraph
 
-        expect { try para.parse(doc.start()) }.to(throwError())
+        expect { try p.parse(doc.start()) }.to(throwError())
     }
 
     func testReject2() throws {
         let doc = Document(source: "\n")
-        let para = Paragraph()
+        let p = paragraph
 
-        expect { try para.parse(doc.start()) }.to(throwError())
+        expect { try p.parse(doc.start()) }.to(throwError())
     }
 
     func testReject3() throws {
         let doc = Document(source: "\n\n")
-        let para = Paragraph()
+        let p = paragraph
 
-        expect { try para.parse(doc.start()) }.to(throwError())
+        expect { try p.parse(doc.start()) }.to(throwError())
     }
 
     func testSingleLine1() throws {
         let doc = Document(source: "a\n")
-        let para = Paragraph()
+        let p = paragraph
 
-        let (nodes, cursor) = try report(try para.parse(doc.start()))
+        let (nodes, cursor) = try parse(p, doc)
         expect(nodes).to(haveCount(1))
         let node = nodes[0]
 
@@ -60,9 +60,9 @@ class ParagraphTests: XCTestCase {
 
     func testSingleLine2() throws {
         let doc = Document(source: "a\n\n")
-        let para = Paragraph()
+        let p = paragraph
 
-        let (nodes, cursor) = try report(try para.parse(doc.start()))
+        let (nodes, cursor) = try parse(p, doc)
         expect(nodes).to(haveCount(1))
         let node = nodes[0]
 
@@ -80,9 +80,9 @@ class ParagraphTests: XCTestCase {
 
     func testMultiLine1() throws {
         let doc = Document(source: "a\nb\nc\n")
-        let para = Paragraph()
+        let p = paragraph
 
-        let (nodes, cursor) = try report(try para.parse(doc.start()))
+        let (nodes, cursor) = try parse(p, doc)
         expect(nodes).to(haveCount(1))
         let node = nodes[0]
 
@@ -99,10 +99,10 @@ class ParagraphTests: XCTestCase {
 
     func testMultiLine2() throws {
         let doc = Document(source: "a\nb\n\nc\n")
-        let para = Paragraph()
-        let section = ListParser(para)
+//        let section = ListParser(para)
+        let p = list(paragraph, separator: skipEmptyLines)
 
-        let (nodes, cursor) = try report(try section.parse(doc.start()))
+        let (nodes, cursor) = try parse(p, doc)
         expect(nodes).to(haveCount(2))
 
         let para1 = nodes[0]

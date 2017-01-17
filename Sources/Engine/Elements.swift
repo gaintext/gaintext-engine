@@ -255,12 +255,12 @@ extension ScopeTemplate {
 /// represent the complete scope: block elements, ...
 open class Scope {
     public init(blockRegistry: ElementRegistry, markupRegistry: ElementRegistry,
-         blockParser: NodeParser, spanParser: SpanParser) {
+                blockParser: NodeParser, spanParser: SpanParser, element: Element? = nil) {
         self.blockRegistry = blockRegistry
         self.markupRegistry = markupRegistry
         self.blockParser = blockParser
         self.spanParser = spanParser
-
+        self.element = element
     }
 
     /// Create a `Element` instance which can be used to
@@ -309,7 +309,8 @@ extension Scope {
             blockRegistry: ElementRegistry(parent: scope.blockRegistry, template: template.block),
             markupRegistry: ElementRegistry(parent: scope.markupRegistry, template: template.markup),
             blockParser: scope.blockParser,
-            spanParser: scope.spanParser
+            spanParser: scope.spanParser,
+            element: scope.element
         )
     }
 }

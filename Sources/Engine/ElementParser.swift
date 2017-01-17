@@ -11,7 +11,7 @@
 import Runes
 
 
-private let elementStartNameParser = identifier <* literal(":") <* optional(whitespace)
+public let elementStartNameParser = identifier <* literal(":") <* optional(whitespace)
 
 public func elementCreateBlockParser(name: String) -> Parser<()> {
     return Parser { input in
@@ -43,6 +43,14 @@ public func elementCreateMarkupParser(name: String) -> Parser<()> {
 }
 public let elementStartMarkupParser = elementStartNameParser >>- elementCreateMarkupParser
 
+public func elementAttribute(_ attr: NodeAttribute) -> Parser<()> {
+    return Parser { input in
+        let element = input.scope.element!
+        element.attributes.append(attr)
+        return ((), input)
+    }
+}
+
 /// Makes a parser store its result as the current element's title.
 public func elementTitle(_ p: Parser<[Node]>) -> Parser<()> {
     return Parser { input in
@@ -52,6 +60,10 @@ public func elementTitle(_ p: Parser<[Node]>) -> Parser<()> {
         return ((), tail)
     }
 }
+private let atEndOfLine = satisfying {$0.atEndOfLine}
+private let titleNodeType = ElementNodeType(name: "title")
+private let titleNode = node(type: titleNodeType) <^> (elementTitleParser <*> pure(atEndOfLine))
+public let elementTitleLine = titleNode >>- elementTitle
 
 /// Makes a parser store its result in the current element's body.
 public func elementContent(_ p: Parser<[Node]>) -> Parser<()> {
@@ -70,6 +82,18 @@ public func elementSpanBody(until endMarker: Parser<()>) -> Parser<()> {
 }
 public func elementSpanBody(until endMarker: Parser<String>) -> Parser<()> {
     return elementSpanBody(until: endMarker *> pure(()))
+}
+
+/// Apply a parser to some sub-block.
+public func subBlock<Result>(_ p: Parser<Result>) -> ([Line]) -> Parser<Result> {
+    return { lines in
+        Parser<Result> { outside in
+            let element = outside.scope.element!
+            let inside = element.childCursor(block: lines, parent: outside)
+            let (result, _) = try p.parse(inside)
+            return (result, outside)
+        }
+    }
 }
 
 /// Create a node from the current element.
@@ -94,9 +118,10 @@ func elementNodeParser(_ p: Parser<()>) -> Parser<[Node]> {
 /// Executes a parser in a separate child scope
 func newScopeParser<Result>(_ p: Parser<Result>) -> Parser<Result> {
     return Parser { input in
+        let scope = input.scope
         var cursor = input
-        let scope = cursor.scope
         cursor.scope = Scope(parent: scope)
+        cursor.scope.element = nil
         var (result, tail) = try p.parse(cursor)
         tail.scope = scope
         return (result, tail)

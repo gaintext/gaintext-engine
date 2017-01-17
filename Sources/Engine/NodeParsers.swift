@@ -34,6 +34,26 @@ public func node(type: NodeType, _ content: Parser<[Node]>) -> Parser<[Node]> {
         return ([node], end)
     }
 }
+/// Wrap some nodes in new parent node.
+///
+/// Returns a function which transforms a parser into a new parser
+/// which adds the new parent node.
+///
+/// Example: `node(type: ...) <^> childNodeParser`
+public func node(type: NodeType, keepEmpty: Bool = false) -> (Parser<[Node]>) -> Parser<[Node]> {
+    return { content in
+        Parser { input in
+            let start = input.position
+            let (children, tail) = try content.parse(input)
+            guard !children.isEmpty || keepEmpty else {
+                return ([], tail)
+            }
+            let node = Node(start: start, end: tail, nodeType: type,
+                            children: children)
+            return ([node], tail)
+        }
+    }
+}
 
 private class TextNodeType: NodeType {
     let name = "text"
@@ -60,7 +80,7 @@ public func errorMarker(_ msg: String) -> Parser<[Node]> {
     }
 }
 
-private func errorBlock(errorType: ErrorNodeType) -> Parser<[Node]> {
+public func errorBlock(errorType: ErrorNodeType) -> Parser<[Node]> {
     return Parser { input in
         var cursor = input
         while !cursor.atEndOfBlock { try! cursor.advanceLine() }
@@ -69,11 +89,12 @@ private func errorBlock(errorType: ErrorNodeType) -> Parser<[Node]> {
     }
 }
 
-private func errorLine(errorType: ErrorNodeType) -> Parser<[Node]> {
+public func errorLine(errorType: ErrorNodeType) -> Parser<[Node]> {
     return Parser { input in
         var cursor = input
         while !cursor.atEndOfLine { try! cursor.advance() }
         let node = Node(start: input.position, end: cursor, nodeType: errorType)
+        try cursor.advanceLine()
         return ([node], cursor)
     }
 }

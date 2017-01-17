@@ -9,88 +9,80 @@
 //
 
 import Engine
+import Runes
 
-public struct TitledContent: ElementParser {
 
-    public init() {}
-
-    func detectSectionStart(_ cursor: Cursor) -> (Cursor, Character)? {
-        return detectSectionStart(cursor, underlineChars: "=-~_+'\"")
-    }
-
-    func detectSectionStart(_ cursor: Cursor, underlineChars: String) -> (Cursor, Character)? {
-        var cursor = cursor
-        guard !cursor.atEndOfBlock else { return nil }
-        guard !cursor.atWhitespaceOnlyLine else { return nil }
+func detectSectionStart(underlineChars: String = "=-~_+'\"") -> Parser<Character> {
+    return Parser { input in
+        var cursor = input
+        guard !cursor.atEndOfBlock else { throw ParserError.notFound(position: input.position) }
+        guard !cursor.atWhitespaceOnlyLine else { throw ParserError.notFound(position: input.position) }
         try! cursor.advanceLine()
-        guard !cursor.atEndOfBlock else { return nil }
+        guard !cursor.atEndOfBlock else { throw ParserError.notFound(position: input.position) }
 
         // check that second line only contains the underline
         let c = cursor.char
         guard underlineChars.characters.contains(c) else {
-            return nil
+            throw ParserError.notFound(position: input.position)
         }
         var count = 1
         try! cursor.advance()
         while !cursor.atEndOfLine {
             if cursor.atWhitespace { continue }
             guard cursor.char == c else {
-                return nil
+                throw ParserError.notFound(position: input.position)
             }
             count += 1
             try! cursor.advance()
         }
         guard count >= 3 else {
-            return nil
+            throw ParserError.notFound(position: input.position)
         }
 
         try! cursor.advanceLine()
         if !cursor.atEndOfBlock {
             guard cursor.atWhitespaceOnlyLine else {
-                return nil
+                throw ParserError.notFound(position: input.position)
             }
             try! cursor.advanceLine()
         }
 
-        return (cursor, c)
+        return (c, cursor)
     }
+}
 
-    func detectElement(_ cursor: Cursor) -> (Element, Cursor)? {
-        if let (element, titleCursor) = detectBlockElementStart(cursor) {
-            return (element, titleCursor)
-        }
-        if let section = cursor.scope.block(name: "section") {
-            return (section, cursor)
-        }
-        return nil
-    }
+private let namedElementOrSection =
+    (elementStartNameParser <|> pure("section")) >>- elementCreateBlockParser
 
-    public func parse(_ cursor: Cursor) throws -> ([Node], Cursor) {
-        let start = cursor.position
-
-        guard let (contentCursor, underline) = detectSectionStart(cursor) else {
-            throw ParserError.notFound(position: cursor.position)
-        }
-        guard let (element, titleCursor) = detectElement(cursor) else {
-            throw ParserError.notFound(position: cursor.position)
-        }
-
-        element.addTitleAttribute(.text("underline", String(underline)))
-        element.parseTitle(cursor: titleCursor)
-
-        var cursor = contentCursor
+private func contentLines(level: Character) -> Parser<[Line]> {
+    let nextSection = detectSectionStart(underlineChars: String(level))
+    return Parser { input in
+        var cursor = input
         var lines: [Line] = []
         while !cursor.atEndOfBlock {
-            guard detectSectionStart(cursor, underlineChars: String(underline)) == nil else { break }
+            do {
+                _ = try nextSection.parse(cursor)
+                break
+            } catch is ParserError {}
             lines.append(cursor.line)
             try! cursor.advanceLine()
         }
-        element.parseBody(block: lines, parent: cursor)
-
-        let node = element.createNode(start: start, end: cursor)
-
-        cursor.skipEmptyLines()
-
-        return ([node], cursor)
+        return (lines, cursor)
     }
+}
+
+private func content(underline: Character) -> Parser<()> {
+    return satisfying {$0.atEndOfBlock} <|> (
+        emptyLine *>
+        contentLines(level: underline) >>- subBlock(elementBody)
+    )
+}
+
+public let titledContent = lookahead(detectSectionStart()) >>- { underline in
+    element(
+        namedElementOrSection *> elementTitleLine *> endOfLine *>
+        advanceLine *> // line with underline characters
+        elementAttribute(.text("underline", String(underline))) *>
+        content(underline: underline)
+    )
 }

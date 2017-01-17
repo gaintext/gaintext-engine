@@ -10,53 +10,35 @@
 
 import Runes
 
-private func detectIndentationParser() -> Parser<String> {
-    return Parser { cursor in
-        var cursor = cursor
-        let start = cursor.position
-        while cursor.atWhitespace {
-            try! cursor.advance()
-        }
-        guard cursor.position != start else {
-            throw ParserError.notFound(position: start)
-        }
-        return (cursor.head(from: start), cursor)
-    }
-}
 
 func indentedBlockParser(prefix: String) -> Parser<[Line]> {
     assert(!prefix.isEmpty)
-    return Parser { cursor in
-        var outerCursor = cursor
-        var nextCursor = outerCursor
+    return Parser { input in
+        var cursor = input
+        var nextCursor = cursor
         var lines: [Line] = []
         var tentative: [Line] = []
-        while !outerCursor.atEndOfBlock {
-            if outerCursor.atWhitespaceOnlyLine {
+        while !cursor.atEndOfBlock {
+            if cursor.atWhitespaceOnlyLine {
                 // only use this line if other indented content follows
-                tentative.append(outerCursor.line)
-                try! outerCursor.advanceLine()
+                tentative.append(cursor.line)
+                try! cursor.advanceLine()
                 continue
             }
-            guard outerCursor.tail.hasPrefix(prefix) else { break }
-            try! outerCursor.advance(by: prefix.characters.count)
-            let line = Line(start: outerCursor.position, endIndex: outerCursor.line.endIndex)
+            guard cursor.tail.hasPrefix(prefix) else { break }
+            try! cursor.advance(by: prefix.characters.count)
+            let line = Line(start: cursor.position, endIndex: cursor.line.endIndex)
             if !tentative.isEmpty {
                 lines.append(contentsOf: tentative)
                 tentative = []
             }
             lines.append(line)
-            try! outerCursor.advanceLine()
-            nextCursor = outerCursor
+            try! cursor.advanceLine()
+            nextCursor = cursor
         }
         return (lines, nextCursor)
     }
 }
 
-public func indentationParser(prefix: String? = nil) -> Parser<[Line]> {
-    if let prefix = prefix {
-        return indentedBlockParser(prefix: prefix)
-    } else {
-        return lookahead(detectIndentationParser()) >>- indentedBlockParser
-    }
-}
+public let indentationParser =
+    lookahead(whitespace) >>- indentedBlockParser

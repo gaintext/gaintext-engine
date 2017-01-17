@@ -9,38 +9,34 @@
 //
 
 import Engine
+import Runes
 
-public struct ElementBlockParser: NodeParser {
+/*
+let errorType = ErrorNodeType("expected element")
 
-    public init() {}
+public let elementBlockParser = Parser<[Node]> { input in
+    var content: [Node] = []
+    var newCursor = input
 
-    public func parse(_ cursor: Cursor) throws -> ([Node], Cursor) {
-        var content: [Node] = []
-        var newCursor = cursor
+    // fail if there is no element at the start of the block
+    let (nodes1, cursor1) = try elementWithIndentedContent.parse(newCursor)
+    content += nodes1
+    newCursor = cursor1
 
-        // fail if there is no element at the start of the block
-        let (nodes1, cursor1) = try delegate.parse(newCursor)
-        content += nodes1
-        newCursor = cursor1
-
-        // collect all further elements,
-        // but don't abort parsing
-        while !newCursor.atEndOfBlock && !newCursor.atWhitespaceOnlyLine {
-            do {
-                let (nodes, cursor) = try delegate.parse(newCursor)
-                content += nodes
-                newCursor = cursor
-            } catch {
-                let start = newCursor.position
-                try! newCursor.advanceLine()
-                content += [Node(start: start, end: newCursor,
-                                    nodeType: ElementBlockParser.errorType)]
-            }
-
+    // collect all further elements,
+    // but don't abort parsing
+    while !newCursor.atEndOfBlock && !newCursor.atWhitespaceOnlyLine {
+        do {
+            let (nodes, cursor) = try elementWithIndentedContent.parse(newCursor)
+            content += nodes
+            newCursor = cursor
+        } catch {
+            let start = newCursor.position
+            try! newCursor.advanceLine()
+            let node = Node(start: start, end: newCursor, nodeType: errorType)
+            content += [node]
         }
-        return (content, newCursor)
-    }
 
-    let delegate = ElementWithIndentedContent()
-    static let errorType = ErrorNodeType("expected element")
-}
+    }
+    return (content, newCursor)
+}*/

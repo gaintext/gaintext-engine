@@ -9,7 +9,6 @@
 //
 
 @testable import Engine
-import XCTest
 import Nimble
 
 /// reports any exceptions which are thrown

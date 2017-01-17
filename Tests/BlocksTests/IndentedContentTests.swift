@@ -20,9 +20,9 @@ class IndentedContentTests: XCTestCase {
     func testSimple() throws {
         let doc = Document(source: "test:\n")
         doc.global.register(block: ElementType("test"))
-        let p = ElementWithIndentedContent()
+        let p = elementWithIndentedContent
 
-        let (nodes, cursor) = try report(try parse(p, doc))
+        let (nodes, cursor) = try parse(p, doc)
         expect(nodes).to(haveCount(1))
         let node = nodes[0]
 
@@ -38,9 +38,9 @@ class IndentedContentTests: XCTestCase {
     func testTitle() throws {
         let doc = Document(source: "test: title\n")
         doc.global.register(block: ElementType("test"))
-        let p = ElementWithIndentedContent()
+        let p = elementWithIndentedContent
 
-        let (nodes, cursor) = try report(try parse(p, doc))
+        let (nodes, cursor) = try parse(p, doc)
         expect(nodes).to(haveCount(1))
         let node = nodes[0]
 
@@ -59,9 +59,9 @@ class IndentedContentTests: XCTestCase {
     func testContent() throws {
         let doc = Document(source: "test: title\n content\n")
         doc.global.register(block: ElementType("test"))
-        let p = ElementWithIndentedContent()
+        let p = elementWithIndentedContent
 
-        let (nodes, cursor) = try report(try parse(p, doc))
+        let (nodes, cursor) = try parse(p, doc)
         expect(nodes).to(haveCount(1))
         let node = nodes[0]
 

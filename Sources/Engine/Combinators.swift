@@ -192,13 +192,10 @@ public func optional<Result>(_ p: Parser<Result>) -> Parser<Result?> {
     }
 }
 public func optional<Result>(_ p: Parser<Result>, otherwise: Result) -> Parser<Result> {
-    return Parser { input in
-        do {
-            return try p.parse(input)
-        } catch is ParserError {
-            return (otherwise, input)
-        }
-    }
+    return p <|> pure(otherwise)
+}
+public func optional(_ p: Parser<()>) -> Parser<()> {
+    return p <|> pure(())
 }
 
 public func lazy<Result>(_ p: @escaping @autoclosure () -> Parser<Result>) -> Parser<Result> {
@@ -207,12 +204,12 @@ public func lazy<Result>(_ p: @escaping @autoclosure () -> Parser<Result>) -> Pa
     }
 }
 
-public func list<Result, Sep>(_ parser: Parser<[Result]>, separator: Parser<Sep>) -> Parser<[Result]> {
+public func list<Result>(first: Parser<[Result]>, following: Parser<[Result]>) -> Parser<[Result]> {
     return Parser { input in
-        var (result, tail) = try parser.parse(input)
+        var (result, tail) = try first.parse(input)
         while true {
             do {
-                let (item, next) = try (separator *> parser).parse(tail)
+                let (item, next) = try following.parse(tail)
                 tail = next
                 result += item
             } catch is ParserError {
@@ -220,4 +217,8 @@ public func list<Result, Sep>(_ parser: Parser<[Result]>, separator: Parser<Sep>
             }
         }
     }
+}
+
+public func list<Result, Sep>(_ parser: Parser<[Result]>, separator: Parser<Sep>) -> Parser<[Result]> {
+    return list(first: parser, following: separator *> parser)
 }

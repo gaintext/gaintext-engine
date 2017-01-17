@@ -15,20 +15,9 @@ import Runes
 
 private var blockParser: NodeParser {
 
-    let section = TitledContent()
-    let elementBlock = ElementBlockParser()
-    let lineDelimited = LineDelimitedContent()
-    let para = Paragraph()
-
-    return ListParser(
-        DisjunctiveParser(list: [
-            section,
-            elementBlock,
-            lineDelimited,
-            para
-        ]),
-        skip: EmptyLines()
-    )
+    return ListParser(WrapParser(
+        titledContent <|> elementBlockParser <|> lineDelimitedContent <|> paragraph
+    ))
 }
 
 private let spanParser = TextWithMarkupParser(markup: CachedParser(WrapParser(

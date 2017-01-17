@@ -47,6 +47,9 @@ public func collect(min: Int = 1, takeWhile: @escaping (Cursor) -> Bool) -> Pars
         var cursor = input
         var result = ""
         var count = 0
+        guard !input.atEndOfBlock else {
+            throw ParserError.endOfScope(position: input.position)
+        }
         while !cursor.atEndOfLine && takeWhile(cursor) {
             result.append(cursor.char)
             try! cursor.advance()
@@ -64,6 +67,9 @@ public func collect(min: Int = 1, until: @escaping (Cursor) -> Bool) -> Parser<S
         var cursor = input
         var result = ""
         var count = 0
+        guard !input.atEndOfBlock else {
+            throw ParserError.endOfScope(position: input.position)
+        }
         while !cursor.atEndOfLine && !until(cursor) {
             result.append(cursor.char)
             try! cursor.advance()
@@ -101,7 +107,6 @@ private let identifierChars = "_@0123456789"
 public let identifier = collect(fromSet: Set(identifierChars.characters))
 
 public let whitespace = collect(takeWhile: { $0.atWhitespace })
-
 
 public let quotedString = Parser<String> { input in
     var cursor = input
@@ -148,22 +153,38 @@ public func pure<Result>(_ value: Result) -> Parser<Result> {
     return Parser { input in (value, input) }
 }
 
-private var advanceLine = Parser<()> { input in
+public let advanceLine = Parser<()> { input in
     var cursor = input
     try cursor.advanceLine()
     return ((), cursor)
 }
-public var endOfLine = satisfying {$0.atEndOfLine} *> advanceLine
+public let endOfLine = satisfying {$0.atEndOfLine} *> advanceLine
+
+public let emptyLine = satisfying {$0.atWhitespaceOnlyLine} *> advanceLine
+
+public let skipEmptyLines = Parser<()> { input in
+    var cursor = input
+    while !cursor.atEndOfBlock && cursor.atWhitespaceOnlyLine {
+        try! cursor.advanceLine()
+    }
+    return ((), cursor)
+}
 
 
+public func debug(msg: String, file: StaticString = #file, line: Int = #line) -> Parser<()> {
+    return Parser { input in
+        debugPrint("\(file):\(line): debug(\(input.position.right)) \(msg)")
+        return ((), input)
+    }
+}
 public func debug<Result>(_ p: Parser<Result>, file: StaticString = #file, line: Int = #line) -> Parser<Result> {
     return Parser { input in
         do {
             let (result, tail) = try p.parse(input)
-            debugPrint("\(file):\(line): (\(input.position.right)..\(tail.position.left)) parsed '\(result)'")
+            debugPrint("\(file):\(line): debug(\(input.position.right)..\(tail.position.left)) parsed '\(result)'")
             return (result, tail)
         } catch let e as ParserError {
-            debugPrint("\(file):\(line): (\(input.position.right)..) raised '\(e)'")
+            debugPrint("\(file):\(line): debug(\(input.position.right)..) raised '\(e)'")
             throw e
         }
     }

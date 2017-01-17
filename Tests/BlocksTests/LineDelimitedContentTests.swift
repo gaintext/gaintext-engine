@@ -19,9 +19,9 @@ class LineDelimitedTests: XCTestCase {
 
     func testSimple() throws {
         let doc = Document(source: "```\nabc\ndef\n```\n")
-        let p = LineDelimitedContent()
+        let p = lineDelimitedContent
 
-        let (nodes, cursor) = try report(try parse(p, doc))
+        let (nodes, cursor) = try parse(p, doc)
         expect(nodes).to(haveCount(1))
         let node = nodes[0]
 
@@ -41,14 +41,14 @@ class LineDelimitedTests: XCTestCase {
 
     func testReject1() throws {
         let doc = Document(source: "```\nabc\ndef\n\n")
-        let p = LineDelimitedContent()
+        let p = lineDelimitedContent
 
         expect { try p.parse(doc.start()) }.to(throwError())
     }
 
     func testReject2() throws {
         let doc = Document(source: "```\n")
-        let p = LineDelimitedContent()
+        let p = lineDelimitedContent
 
         expect(try p.parse(doc.start())).to(throwError())
     }
