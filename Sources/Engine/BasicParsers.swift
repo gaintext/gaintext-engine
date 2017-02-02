@@ -42,6 +42,33 @@ public func literal(_ token: String) -> Parser<String> {
     }
 }
 
+public func oneOf(_ set: String) -> Parser<String> {
+    return Parser<String> { input in
+        guard !input.atEndOfBlock else {
+            throw ParserError.endOfScope(position: input.position)
+        }
+        guard input.at(oneOf: set) else {
+            throw ParserError.notFound(position: input.position)
+        }
+        var tail = input
+        try! tail.advance()
+        return (String(input.char), tail)
+    }
+}
+public func oneOf(_ set: Set<Character>) -> Parser<String> {
+    return Parser<String> { input in
+        guard !input.atEndOfBlock else {
+            throw ParserError.endOfScope(position: input.position)
+        }
+        guard input.at(oneOf: set) else {
+            throw ParserError.notFound(position: input.position)
+        }
+        var tail = input
+        try! tail.advance()
+        return (String(input.char), tail)
+    }
+}
+
 public func collect(min: Int = 1, takeWhile: @escaping (Cursor) -> Bool) -> Parser<String> {
     return Parser<String> { input in
         var cursor = input
@@ -59,9 +86,9 @@ public func collect(min: Int = 1, takeWhile: @escaping (Cursor) -> Bool) -> Pars
             throw ParserError.notFound(position: cursor.position)
         }
         return (result, cursor)
-
     }
 }
+
 public func collect(min: Int = 1, until: @escaping (Cursor) -> Bool) -> Parser<String> {
     return Parser<String> { input in
         var cursor = input
@@ -190,72 +217,7 @@ public func debug<Result>(_ p: Parser<Result>, file: StaticString = #file, line:
     }
 }
 
-public struct LiteralParser: NodeParser {
-    public init(token: String) {
-        self.token = token
-        self.count = token.characters.count
-    }
 
-    public func parse(_ cursor: Cursor) throws -> ([Node], Cursor) {
-        var cursor = cursor
-        guard !cursor.atEndOfBlock else {
-            throw ParserError.endOfScope(position: cursor.position)
-        }
-        let text = cursor.tail
-        guard text.hasPrefix(token) else {
-            throw ParserError.notFound(position: cursor.position)
-        }
-        let start = cursor.position
-        try! cursor.advance(by: count)
-        let node = Node(start: start, end: cursor, nodeType: LiteralParser.nodeType)
-        return ([node], cursor)
-    }
-
-    static let nodeType = ElementNodeType(name: "token")
-
-    let token: String
-    let count: Int
-}
-
-extension LiteralParser: CustomStringConvertible {
-    public var description: String {
-        return "token '\(token)'"
-    }
-}
-
-public struct NewlineParser: NodeParser {
-
-    public func parse(_ cursor: Cursor) throws -> ([Node], Cursor) {
-        guard !cursor.atEndOfBlock else {
-            throw ParserError.endOfScope(position: cursor.position)
-        }
-        guard cursor.atEndOfLine else {
-            throw ParserError.notFound(position: cursor.position)
-        }
-        var cursor = cursor
-        let start = cursor.position
-        try cursor.advanceLine()
-        let node = Node(start: start, end: cursor, nodeType: NewlineParser.nodeType)
-        return ([node], cursor)
-    }
-
-    static let nodeType = ElementNodeType(name: "newline")
-}
-
-extension NewlineParser: CustomStringConvertible {
-    public var description: String {
-        return "(newline)"
-    }
-}
-
-public struct EmptyLines: NodeParser {
-    public init() {}
-    public func parse(_ cursor: Cursor) throws -> ([Node], Cursor) {
-        var cursor = cursor
-        cursor.skipEmptyLines()
-        return ([], cursor)
-    }
-}
 
 public class ListParser: NodeParser {
     public init(_ delegate: NodeParser, min: Int = 0, max: Int = 0, skip: NodeParser? = nil) {

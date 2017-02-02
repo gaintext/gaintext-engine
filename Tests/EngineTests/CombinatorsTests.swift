@@ -15,270 +15,432 @@ import Runes
 import XCTest
 import Nimble
 
-class SequenceParserTests: XCTestCase {
+enum TestError: Error {
+    case a
+}
+
+let digits = collect(fromSet: "0123456789")
+
+class OperatorMapTests: XCTestCase {
 
     func testSuccess() throws {
-        let doc = Document(source: "abcdef")
-        let p1 = LiteralParser(token: "abc")
-        let p2 = LiteralParser(token: "def")
-        let p = SequenceParser(list: [p1, p2])
-
-        let (nodes, cursor) = try parse(p, doc)
-        expect(nodes).to(haveCount(2))
-
-        let node1 = nodes[0]
-        expect(node1.document) == doc
-        expect(node1.sourceRange) == "1:1..1:3"
-        expect(node1.nodeType.name) == "token"
-        expect(node1.children).to(beEmpty())
-
-        let node2 = nodes[1]
-        expect(node2.document) == doc
-        expect(node2.sourceRange) == "1:4..1:6"
-        expect(node2.nodeType.name) == "token"
-        expect(node2.children).to(beEmpty())
-
-        expect(cursor.atEndOfLine).to(beTrue())
+        let doc = Document(source: "123")
+        let f: (String) -> Int = { Int($0)! }
+        let p = f <^> digits
+        let (result, tail) = try parse(p, doc)
+        expect(result) == 123
+        expect(tail.atEndOfLine) == true
     }
-
-    func testFailure1() {
-        let doc = Document(source: "abcde")
-        let p1 = LiteralParser(token: "abc")
-        let p2 = LiteralParser(token: "def")
-        let p = SequenceParser(list: [p1, p2])
-
+    func testFuncThrows() throws {
+        let doc = Document(source: "123")
+        let f: (String) throws -> Int = { _ in throw TestError.a }
+        let p = f <^> digits
         expect(try p.parse(doc.start())).to(throwError())
-    }
-
-    func testFailure2() {
-        let doc = Document(source: "bcdef")
-        let p1 = LiteralParser(token: "abc")
-        let p2 = LiteralParser(token: "def")
-        let p = SequenceParser(list: [p1, p2])
-
-        expect(try p.parse(doc.start())).to(throwError())
-    }
-
-    static var allTests : [(String, (SequenceParserTests) -> () throws -> Void)] {
-        return [
-            ("testSuccess", testSuccess),
-            ("testFailure1", testFailure1),
-            ("testFailure2", testFailure2),
-        ]
     }
 }
 
-class DisjunctiveParserTests: XCTestCase {
+class OperatorApplyTests: XCTestCase {
+
+    func testSuccess() throws {
+        let doc = Document(source: "123")
+        let p = pure { Int($0) } <*> digits
+        let (result, tail) = try parse(p, doc)
+        expect(result) == 123
+        expect(tail.atEndOfLine) == true
+    }
+}
+
+class OperatorLeftTests: XCTestCase {
+
+    func testLeft1() throws {
+        let doc = Document(source: "abcdef")
+        let p = literal("abc") <* literal("def")
+        let (result, tail) = try parse(p, doc)
+        expect(result) == "abc"
+        expect(tail.atEndOfLine) == true
+    }
+
+    func testLeft2() throws {
+        let doc = Document(source: "defabc")
+        let p = literal("abc") <* literal("def")
+        expect(try p.parse(doc.start())).to(throwError())
+    }
+}
+
+class OperatorRightTests: XCTestCase {
+
+    func testRight1() throws {
+        let doc = Document(source: "abcdef")
+        let p = literal("abc") *> literal("def")
+        let (result, tail) = try parse(p, doc)
+        expect(result) == "def"
+        expect(tail.atEndOfLine) == true
+    }
+
+    func testRight2() throws {
+        let doc = Document(source: "defabc")
+        let p = literal("abc") *> literal("def")
+        expect(try p.parse(doc.start())).to(throwError())
+    }
+}
+
+class OperatorOrTests: XCTestCase {
+
+    func testOr1() throws {
+        let doc = Document(source: "abc")
+        let p = literal("abc") <|> literal("def")
+        let (result, tail) = try parse(p, doc)
+        expect(result) == "abc"
+        expect(tail.atEndOfLine) == true
+    }
+
+    func testOr2() throws {
+        let doc = Document(source: "def")
+        let p = literal("abc") <|> literal("def")
+        let (result, tail) = try parse(p, doc)
+        expect(result) == "def"
+        expect(tail.atEndOfLine) == true
+    }
+
+    func testOr3() throws {
+        let doc = Document(source: "ghi")
+        let p = literal("abc") <|> literal("def")
+        expect(try p.parse(doc.start())).to(throwError())
+    }
+}
+
+class OperatorMapParserTests: XCTestCase {
+
+    func testMapParser1() throws {
+        let doc = Document(source: "ada")
+        let p = collect(fromSet: "abc") >>- { collect(fromSet: "def") <* literal($0) }
+        let (result, tail) = try parse(p, doc)
+        expect(result) == "d"
+        expect(tail.atEndOfLine) == true
+    }
+    func testMapParser2() throws {
+        let doc = Document(source: "beb")
+        let p = collect(fromSet: "abc") >>- { collect(fromSet: "def") <* literal($0) }
+        let (result, tail) = try parse(p, doc)
+        expect(result) == "e"
+        expect(tail.atEndOfLine) == true
+    }
+    func testMapParser3() throws {
+        let doc = Document(source: "adb")
+        let p = collect(fromSet: "abc") >>- { oneOf("def") <* literal($0) }
+        expect(try p.parse(doc.start())).to(throwError())
+    }
+}
+
+class OperatorComposeFuncTests: XCTestCase {
+
+    func testComposeFuncSuccess() throws {
+        let doc = Document(source: "aa")
+        let f = oneOf as (String)->Parser<String> >-> literal
+        let (result, tail) = try parse(f("abc"), doc)
+        expect(result) == "a"
+        expect(tail.atEndOfLine) == true
+    }
+
+    func testComposeFuncLhsFailure() throws {
+        let doc = Document(source: "dd")
+        let f = oneOf as (String)->Parser<String> >-> literal
+        expect(try f("abc").parse(doc.start())).to(throwError())
+    }
+    func testComposeFuncRhsFailure() throws {
+        let doc = Document(source: "ab")
+        let f = oneOf as (String)->Parser<String> >-> literal
+        expect(try f("abc").parse(doc.start())).to(throwError())
+    }
+}
+
+class OperatorAddTests: XCTestCase {
+
+    func testAddString1() throws {
+        let doc = Document(source: "ab")
+        let p = literal("a") <+> literal("b")
+        let (result, tail) = try parse(p, doc)
+        expect(result) == "ab"
+        expect(tail.atEndOfLine) == true
+    }
+
+    func testAddList1() throws {
+        let doc = Document(source: "")
+        let p = pure(["a"]) <+> pure(["b"])
+        let (result, _) = try parse(p, doc)
+        expect(result) == ["a", "b"]
+    }
+}
+
+class CombinatorMapTests: XCTestCase {
 
     func testSuccess1() throws {
-        let doc = Document(source: "abc")
-        let p1 = LiteralParser(token: "abc")
-        let p2 = LiteralParser(token: "def")
-        let p = DisjunctiveParser(list: [p1, p2])
-
-        let (nodes, cursor) = try parse(p, doc)
-        expect(nodes).to(haveCount(1))
-        let node = nodes[0]
-
-        expect(node.document) == doc
-        expect(node.sourceRange) == "1:1..1:3"
-        expect(node.nodeType.name) == "token"
-        expect(node.children).to(beEmpty())
-
-        expect(cursor.atEndOfLine) == true
+        let doc = Document(source: "123")
+        let p = digits.map { Int($0) }
+        let (result, tail) = try parse(p, doc)
+        expect(result) == 123
+        expect(tail.atEndOfLine) == true
     }
 
     func testSuccess2() throws {
-        let doc = Document(source: "def")
-        let p1 = LiteralParser(token: "abc")
-        let p2 = LiteralParser(token: "def")
-        let p = DisjunctiveParser(list: [p1, p2])
-
-        let (nodes, cursor) = try parse(p, doc)
-        expect(nodes).to(haveCount(1))
-        let node = nodes[0]
-
-        expect(node.document) == doc
-        expect(node.sourceRange) == "1:1..1:3"
-        expect(node.nodeType.name) == "token"
-        expect(node.children).to(beEmpty())
-
-        expect(cursor.atEndOfLine) == true
+        let doc = Document(source: "123a")
+        let p = digits.map { Int($0) }
+        let (result, tail) = try parse(p, doc)
+        expect(result) == 123
+        expect(tail.atEndOfLine) == false
     }
 
-    func testFailure() {
-        let doc = Document(source: "ghi")
-        let p1 = LiteralParser(token: "abc")
-        let p2 = LiteralParser(token: "def")
-        let p = DisjunctiveParser(list: [p1, p2])
-
+    func testFailure() throws {
+        let doc = Document(source: "a123")
+        let p = digits.map { Int($0) }
         expect(try p.parse(doc.start())).to(throwError())
     }
 
-    static var allTests : [(String, (DisjunctiveParserTests) -> () throws -> Void)] {
-        return [
-            ("testSuccess1", testSuccess1),
-            ("testSuccess2", testSuccess2),
-            ("testFailure", testFailure),
-        ]
-    }
-}
-
-class CachedParserTests: XCTestCase {
-
-    private class StubParser: NodeParser {
-        func parse(_ cursor: Cursor) throws -> ([Node], Cursor) {
-            count += 1
-            return try LiteralParser(token: "abc").parse(cursor)
-        }
-
-        var count: Int = 0
-    }
-
-    func testCachedParser() throws {
-        let doc = Document(source: "abc")
-        let start = doc.start()
-        let stub = StubParser()
-        let p = CachedParser(stub)
-
-        let (nodes, cursor) = try parse(p, start)
-        expect(nodes).to(haveCount(1))
-        let node = nodes[0]
-
-        expect(node.document) == doc
-        expect(node.sourceRange) == "1:1..1:3"
-        expect(cursor.atEndOfLine) == true
-        expect(stub.count) == 1
-
-        let (nodes2, cursor2) = try parse(p, start)
-        expect(nodes2).to(haveCount(1))
-        let node2 = nodes[0]
-        expect(node2) == node
-        expect(cursor2) == cursor
-        expect(stub.count) == 1
-    }
-
-    func testRightRecursionSuccess1() throws {
-        let doc = Document(source: "abcabcabc")
-        let start = doc.start()
-        let p = DeferredParser()
-        let p1 = CachedParser(LiteralParser(token: "abc"))
-        let p2 = SequenceParser(list: [p1, p])
-        p.resolve(DisjunctiveParser(list: [p2, p1]))
-
-        let (nodes, cursor) = try parse(p, start)
-        expect(nodes).to(haveCount(3))
-
-        let node1 = nodes[0]
-        expect(node1.sourceRange) == "1:1..1:3"
-
-        let node2 = nodes[1]
-        expect(node2.sourceRange) == "1:4..1:6"
-
-        let node3 = nodes[2]
-        expect(node3.sourceRange) == "1:7..1:9"
-
-        expect(cursor.atEndOfLine) == true
-    }
-
-    func testRightRecursionSuccess2() throws {
-        let doc = Document(source: "abcabcABC")
-        let p = DeferredParser()
-        let p1 = CachedParser(LiteralParser(token: "abc"))
-        let p2 = SequenceParser(list: [p1, p])
-        p.resolve(DisjunctiveParser(list: [p2, p1]))
-
-        let (nodes, cursor) = try parse(p, doc)
-        expect(nodes).to(haveCount(2))
-
-        let node1 = nodes[0]
-        expect(node1.sourceRange) == "1:1..1:3"
-
-        let node2 = nodes[1]
-        expect(node2.sourceRange) == "1:4..1:6"
-
-        expect(cursor.position) == node2.range.end
-    }
-
-    func testRightRecursionFailure() {
-        let doc = Document(source: "abCabc")
-        let p = DeferredParser()
-        let p1 = CachedParser(LiteralParser(token: "abc"))
-        let p2 = SequenceParser(list: [p1, p])
-        p.resolve(DisjunctiveParser(list: [p2, p1]))
-
-        expect(try p.parse(doc.start())).to(throwError())
-    }
-
-    func testLeftRecursionSuccess1() throws {
-        let doc = Document(source: "abcabcabc")
-        let p = DeferredParser()
-        let p1 = CachedParser(LiteralParser(token: "abc"))
-        let p2 = SequenceParser(list: [p1, p])
-        p.resolve(DisjunctiveParser(list: [p2, p1]))
-
-        let (nodes, cursor) = try report(try p.parse(doc.start()))
-        expect(nodes).to(haveCount(3))
-
-        let node1 = nodes[0]
-        expect(node1.sourceRange) == "1:1..1:3"
-
-        let node2 = nodes[1]
-        expect(node2.sourceRange) == "1:4..1:6"
-
-        let node3 = nodes[2]
-        expect(node3.sourceRange) == "1:7..1:9"
-
-        expect(cursor.atEndOfLine) == true
-    }
-
-    static var allTests : [(String, (CachedParserTests) -> () throws -> Void)] {
-        return [
-            ("testCachedParser", testCachedParser),
-            ("testRightRecursionSuccess1", testRightRecursionSuccess1),
-            ("testRightRecursionSuccess2", testRightRecursionSuccess2),
-            ("testRightRecursionFailure", testRightRecursionFailure),
-            ("testLeftRecursionSuccess1", testLeftRecursionSuccess1),
-        ]
-    }
-}
-
-
-class MappedParserTests: XCTestCase {
-
-    func test1() throws {
+    func testFuncThrows() throws {
         let doc = Document(source: "123")
-        let input = doc.start()
-        let p = word.map { Int($0) }
+        let p = digits.map { (_) throws -> Int in
+            throw TestError.a
+        }
+        expect(try p.parse(doc.start())).to(throwError())
+    }
+}
 
-        let (res, tail) = try p.parse(input)
-        expect(res) == 123
+class CombinatorLookaheadTests: XCTestCase {
+
+    func testSuccess() throws {
+        let doc = Document(source: "123")
+        let p = lookahead(digits)
+        let (result, tail) = try parse(p, doc)
+        expect(result) == "123"
+        expect(tail.position) == doc.start().position
+    }
+    func testFailure() throws {
+        let doc = Document(source: "a123")
+        let p = lookahead(digits)
+        expect(try p.parse(doc.start())).to(throwError())
+    }
+}
+
+class CombinatorNotTests: XCTestCase {
+
+    func testSuccess() throws {
+        let doc = Document(source: "a123")
+        let p = not(digits)
+        let (_, tail) = try parse(p, doc)
+        expect(tail.atEndOfLine) == false
+    }
+    func testFailure() throws {
+        let doc = Document(source: "123")
+        let p = not(digits)
+        expect(try p.parse(doc.start())).to(throwError())
+    }
+}
+
+class CombinatorOptionalTests: XCTestCase {
+
+    func testSome1() throws {
+        let doc = Document(source: "123")
+        let p = optional(digits)
+        let (result, tail) = try parse(p, doc)
+        expect(result) == .some("123")
+        expect(tail.atEndOfLine) == true
+    }
+    func testNone1() throws {
+        let doc = Document(source: "a123")
+        let p = optional(digits)
+        let (result, tail) = try parse(p, doc)
+        expect(result).to(beNil())
+        expect(tail.atEndOfLine) == false
+    }
+
+    func testSome2() throws {
+        let doc = Document(source: "123")
+        let p = optional(digits, otherwise: "0")
+        let (result, tail) = try parse(p, doc)
+        expect(result) == "123"
+        expect(tail.atEndOfLine) == true
+    }
+    func testNone2() throws {
+        let doc = Document(source: "a123")
+        let p = optional(digits, otherwise: "0")
+        let (result, tail) = try parse(p, doc)
+        expect(result) == "0"
+        expect(tail.atEndOfLine) == false
+    }
+
+    func testSome3() throws {
+        let doc = Document(source: "123")
+        let p = optional(digits *> pure(()))
+        let (_, tail) = try parse(p, doc)
+        expect(tail.atEndOfLine) == true
+    }
+    func testNone3() throws {
+        let doc = Document(source: "a123")
+        let p = optional(digits *> pure(()))
+        let (_, tail) = try parse(p, doc)
+        expect(tail.atEndOfLine) == false
+    }
+
+}
+
+class CombinatorLazyTests: XCTestCase {
+
+    func testRecursive1() throws {
+        let doc = Document(source: "")
+        var p: Parser<String>!
+        p = literal("abc") <+> optional(lazy(p), otherwise: "")
+        expect(try p.parse(doc.start())).to(throwError())
+    }
+
+    func testRecursive2() throws {
+        let doc = Document(source: "abcdef")
+        var p: Parser<String>!
+        p = literal("abc") <+> optional(lazy(p), otherwise: "")
+
+        let (result, tail) = try parse(p, doc)
+        expect(result) == "abc"
         expect(tail.position.left) == "1:3"
     }
 
-    func test2() throws {
-        let doc = Document(source: "abc")
-        let input = doc.start()
-        let p = word.map { Int($0) }
+    func testRecursive3() throws {
+        let doc = Document(source: "abcabcdef")
+        var p: Parser<String>!
+        p = literal("abc") <+> optional(lazy(p), otherwise: "")
 
-        expect {try p.parse(input)}.to(throwError())
+        let (result, tail) = try parse(p, doc)
+        expect(result) == "abcabc"
+        expect(tail.position.left) == "1:6"
     }
 
-    func test3() throws {
-        let doc = Document(source: "abc")
-        let input = doc.start()
-        let p = word.map { "<" + $0 + ">" }
-
-        let (res, tail) = try p.parse(input)
-        expect(res) == "<abc>"
-        expect(tail.position.left) == "1:3"
-    }
-
-    static var allTests : [(String, (MappedParserTests) -> () throws -> Void)] {
+    static var allTests : [(String, (CombinatorLazyTests) -> () throws -> Void)] {
         return [
-            ("test1", test1),
-            ("test2", test2),
-            ("test3", test3),
+            ("testRecursive1", testRecursive1),
+            ("testRecursive2", testRecursive2),
+            ("testRecursive3", testRecursive3),
+        ]
+    }
+}
+
+class CombinatorListTests: XCTestCase {
+
+    func testEmpty() throws {
+        let doc = Document(source: "")
+        let p1 = literal("1").map {[$0]}
+        let p2 = oneOf("23").map {[$0]}
+        let p = list(first: p1, following: p2)
+        expect(try p.parse(doc.start())).to(throwError())
+    }
+
+    func testWrongStart() throws {
+        let doc = Document(source: "-")
+        let p1 = literal("1").map {[$0]}
+        let p2 = oneOf("23").map {[$0]}
+        let p = list(first: p1, following: p2)
+        expect(try p.parse(doc.start())).to(throwError())
+    }
+
+    func testOnlyOne() throws {
+        let doc = Document(source: "1")
+        let p1 = literal("1").map {[$0]}
+        let p2 = oneOf("23").map {[$0]}
+        let p = list(first: p1, following: p2)
+        let (result, tail) = try parse(p, doc)
+        expect(result) == ["1"]
+        expect(tail.atEndOfLine) == true
+    }
+
+    func testTwo1() throws {
+        let doc = Document(source: "12")
+        let p1 = literal("1").map {[$0]}
+        let p2 = oneOf("23").map {[$0]}
+        let p = list(first: p1, following: p2)
+        let (result, tail) = try parse(p, doc)
+        expect(result) == ["1", "2"]
+        expect(tail.atEndOfLine) == true
+    }
+
+    func testTwo2() throws {
+        let doc = Document(source: "12-")
+        let p1 = literal("1").map {[$0]}
+        let p2 = oneOf("23").map {[$0]}
+        let p = list(first: p1, following: p2)
+        let (result, tail) = try parse(p, doc)
+        expect(result) == ["1", "2"]
+        expect(tail.atEndOfLine) == false
+    }
+
+    func testThree1() throws {
+        let doc = Document(source: "123")
+        let p1 = literal("1").map {[$0]}
+        let p2 = oneOf("23").map {[$0]}
+        let p = list(first: p1, following: p2)
+        let (result, tail) = try parse(p, doc)
+        expect(result) == ["1", "2", "3"]
+        expect(tail.atEndOfLine) == true
+    }
+
+    func testThree2() throws {
+        let doc = Document(source: "123-")
+        let p1 = literal("1").map {[$0]}
+        let p2 = oneOf("23").map {[$0]}
+        let p = list(first: p1, following: p2)
+        let (result, tail) = try parse(p, doc)
+        expect(result) == ["1", "2", "3"]
+        expect(tail.atEndOfLine) == false
+    }
+
+    func testSeparator0() throws {
+        let doc = Document(source: ",")
+        let p = list(oneOf("123").map {[$0]}, separator: literal(","))
+        expect(try p.parse(doc.start())).to(throwError())
+    }
+
+    func testSeparator1() throws {
+        let doc = Document(source: "1")
+        let p = list(oneOf("123").map {[$0]}, separator: literal(","))
+        let (result, tail) = try parse(p, doc)
+        expect(result) == ["1"]
+        expect(tail.atEndOfLine) == true
+    }
+
+    func testSeparator2() throws {
+        let doc = Document(source: "1,2")
+        let p = list(oneOf("123").map {[$0]}, separator: literal(","))
+        let (result, tail) = try parse(p, doc)
+        expect(result) == ["1", "2"]
+        expect(tail.atEndOfLine) == true
+    }
+
+    func testSeparator3() throws {
+        let doc = Document(source: "1,2,3")
+        let p = list(oneOf("123").map {[$0]}, separator: literal(","))
+        let (result, tail) = try parse(p, doc)
+        expect(result) == ["1", "2", "3"]
+        expect(tail.atEndOfLine) == true
+    }
+
+    func testSeparator4() throws {
+        let doc = Document(source: "1,2,3,")
+        let p = list(oneOf("123").map {[$0]}, separator: literal(","))
+        let (result, tail) = try parse(p, doc)
+        expect(result) == ["1", "2", "3"]
+        expect(tail.atEndOfLine) == false
+    }
+
+    static var allTests : [(String, (CombinatorListTests) -> () throws -> Void)] {
+        return [
+            ("testEmpty", testEmpty),
+            ("testWrongStart", testWrongStart),
+            ("testOnlyOne", testOnlyOne),
+            ("testTwo1", testTwo1),
+            ("testTwo2", testTwo2),
+            ("testThree1", testThree1),
+            ("testThree2", testThree2),
+            ("testSeparator0", testSeparator0),
+            ("testSeparator1", testSeparator1),
+            ("testSeparator2", testSeparator2),
+            ("testSeparator3", testSeparator3),
+            ("testSeparator4", testSeparator4),
         ]
     }
 }
@@ -311,44 +473,3 @@ class LookaheadParserTests: XCTestCase {
     }
 }
 
-class LazyParserTests: XCTestCase {
-
-    func testRecursive1() throws {
-        let doc = Document(source: "")
-        let input = doc.start()
-        var p: Parser<String>!
-        p = literal("abc") <+> optional(lazy(p), otherwise: "")
-
-        expect {try p.parse(input)}.to(throwError())
-    }
-
-    func testRecursive2() throws {
-        let doc = Document(source: "abcdef")
-        let input = doc.start()
-        var p: Parser<String>!
-        p = literal("abc") <+> optional(lazy(p), otherwise: "")
-
-        let (res, tail) = try p.parse(input)
-        expect(res) == "abc"
-        expect(tail.position.left) == "1:3"
-    }
-
-    func testRecursive3() throws {
-        let doc = Document(source: "abcabcdef")
-        let input = doc.start()
-        var p: Parser<String>!
-        p = literal("abc") <+> optional(lazy(p), otherwise: "")
-
-        let (res, tail) = try p.parse(input)
-        expect(res) == "abcabc"
-        expect(tail.position.left) == "1:6"
-    }
-
-    static var allTests : [(String, (LazyParserTests) -> () throws -> Void)] {
-        return [
-            ("testRecursive1", testRecursive1),
-            ("testRecursive2", testRecursive2),
-            ("testRecursive3", testRecursive3),
-        ]
-    }
-}

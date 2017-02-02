@@ -20,7 +20,7 @@ private var blockParser: NodeParser {
     ))
 }
 
-private let spanParser = TextWithMarkupParser(markup: CachedParser(WrapParser(
+private let spanParser = TextWithMarkupParser(markup: WrapParser(cached(
     escaped <|> spanWithBrackets <|> spanWithDelimiters
 )))
 
