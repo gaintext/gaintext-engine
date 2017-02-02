@@ -19,6 +19,7 @@ import XCTest
 XCTMain([
 
      // EngineTests
+     testCase(AttributesTests.allTests),
      testCase(CachedParserTests.allTests),
      testCase(CharacterParserTests.allTests),
      testCase(CollectUntilParserTests.allTests),

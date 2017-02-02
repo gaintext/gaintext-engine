@@ -26,7 +26,8 @@ public func elementCreateBlockParser(name: String) -> Parser<()> {
         return ((), input)
     }
 }
-public let elementStartBlockParser = elementStartNameParser >>- elementCreateBlockParser
+public let elementStartBlockParser = (identifier >>- elementCreateBlockParser) *>
+    elementContent(attributesParser(literal(":")*>pure(()))) *> optional(whitespace)
 
 public func elementCreateMarkupParser(name: String) -> Parser<()> {
     return Parser { input in

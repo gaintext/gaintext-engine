@@ -27,3 +27,7 @@ func parse<Result>(_ p: Parser<Result>, _ cursor: Cursor, file: FileString = #fi
 func parse<Result>(_ p: Parser<Result>, _ doc: Document, file: FileString = #file, line: UInt = #line) throws -> (Result, Cursor) {
     return try report(try p.parse(doc.start()), file: file, line: line)
 }
+
+func parse(_ p: SpanParser, _ doc: Document, until endMarker: Parser<()>, file: FileString = #file, line: UInt = #line) throws -> ([Node], Cursor) {
+    return try report(try p(endMarker).parse(doc.start()), file: file, line: line)
+}
