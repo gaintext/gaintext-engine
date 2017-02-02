@@ -34,7 +34,7 @@ let package = Package(
 //        Target(name: "ElementsTests", dependencies: ["EngineTests", "GainText"]),
     ],
     dependencies: [
-        .Package(url: "https://github.com/Quick/Nimble", majorVersion: 5),
+        .Package(url: "https://github.com/Quick/Nimble", majorVersion: 6),
         .Package(url: "https://github.com/thoughtbot/Runes", majorVersion: 4)
     ]
 )
