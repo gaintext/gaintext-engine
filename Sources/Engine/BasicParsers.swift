@@ -11,6 +11,7 @@
 import Runes
 
 
+/// Parser for one specific character.
 public func literal(_ token: Character) -> Parser<String> {
     return Parser<String> { input in
         guard !input.atEndOfBlock else {
@@ -25,6 +26,7 @@ public func literal(_ token: Character) -> Parser<String> {
     }
 }
 
+/// Parser for one specific literal string.
 public func literal(_ token: String) -> Parser<String> {
     let count = token.characters.count
 
@@ -42,6 +44,7 @@ public func literal(_ token: String) -> Parser<String> {
     }
 }
 
+/// Parser for one character from a set.
 public func oneOf(_ set: String) -> Parser<String> {
     return Parser<String> { input in
         guard !input.atEndOfBlock else {
@@ -55,6 +58,8 @@ public func oneOf(_ set: String) -> Parser<String> {
         return (String(input.char), tail)
     }
 }
+
+/// Parser for one character from a set.
 public func oneOf(_ set: Set<Character>) -> Parser<String> {
     return Parser<String> { input in
         guard !input.atEndOfBlock else {
@@ -69,6 +74,7 @@ public func oneOf(_ set: Set<Character>) -> Parser<String> {
     }
 }
 
+/// Parser which collects all consecutive characters while a specified matching condition holds.
 public func collect(min: Int = 1, takeWhile: @escaping (Cursor) -> Bool) -> Parser<String> {
     return Parser<String> { input in
         var cursor = input
@@ -89,6 +95,7 @@ public func collect(min: Int = 1, takeWhile: @escaping (Cursor) -> Bool) -> Pars
     }
 }
 
+/// Parser which collects all consecutive characters until a specified abort condition holds.
 public func collect(min: Int = 1, until: @escaping (Cursor) -> Bool) -> Parser<String> {
     return Parser<String> { input in
         var cursor = input
@@ -109,13 +116,17 @@ public func collect(min: Int = 1, until: @escaping (Cursor) -> Bool) -> Parser<S
 
     }
 }
+
+/// Parser which collects all consecutive characters from a set.
 public func collect(min: Int = 1, fromSet: String) -> Parser<String> {
     return collect(min: min, takeWhile: { cursor in cursor.at(oneOf: fromSet) })
 }
+/// Parser which collects all consecutive characters from a set.
 public func collect(min: Int = 1, fromSet: Set<Character>) -> Parser<String> {
     return collect(min: min, takeWhile: { cursor in cursor.at(oneOf: fromSet) })
 }
 
+/// Parser which matches any character.
 public let character = Parser<String> { input in
     guard !input.atEndOfBlock && !input.atEndOfLine else {
         throw ParserError.notFound(position: input.position)
@@ -126,15 +137,20 @@ public let character = Parser<String> { input in
     return (result, cursor)
 }
 
+/// Parser which matches all characters up to the next white-space.
 public let word = collect(until: { $0.atWhitespace })
 
 private let identifierChars = "_@0123456789"
     + "abcdefghijklmnopqrstuvwxyz"
     + "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+/// Parser which matches identifiers (all alpha-numerical characters).
 public let identifier = collect(fromSet: Set(identifierChars.characters))
 
 public let whitespace = collect(takeWhile: { $0.atWhitespace })
 
+/// Parser which matches a quoted string.
+///
+/// A single quote can be embedded by escaping it with a backslash (`\"`).
 public let quotedString = Parser<String> { input in
     var cursor = input
     let start = cursor.position
@@ -167,6 +183,9 @@ public let quotedString = Parser<String> { input in
     return (result, cursor)
 }
 
+/// Parser which matches when a specified condition holds.
+///
+/// Does not consume any input.
 public func satisfying(_ f: @escaping (Cursor) -> Bool) -> Parser<()> {
     return Parser { input in
         guard f(input) else {
@@ -176,19 +195,34 @@ public func satisfying(_ f: @escaping (Cursor) -> Bool) -> Parser<()> {
     }
 }
 
+/// Parser which always returns a value without consuming input.
 public func pure<Result>(_ value: Result) -> Parser<Result> {
     return Parser { input in (value, input) }
 }
 
+/// Parser which consumes the whole content of a line.
+public let wholeLine = Parser<()> { input in
+    var cursor = input
+    while !cursor.atEndOfLine {
+        try! cursor.advance()
+    }
+    return ((), cursor)
+}
+
+/// Parser which moves to the next line (skipping the rest of this line).
 public let advanceLine = Parser<()> { input in
     var cursor = input
     try cursor.advanceLine()
     return ((), cursor)
 }
+
+/// Parser which consumes the end-of-line and moves to the next line.
 public let endOfLine = satisfying {$0.atEndOfLine} *> advanceLine
 
+/// Parser which consumes one empty line.
 public let emptyLine = satisfying {$0.atWhitespaceOnlyLine} *> advanceLine
 
+/// Parser which consumes empty lines.
 public let skipEmptyLines = Parser<()> { input in
     var cursor = input
     while !cursor.atEndOfBlock && cursor.atWhitespaceOnlyLine {
@@ -198,12 +232,14 @@ public let skipEmptyLines = Parser<()> { input in
 }
 
 
+/// Debugging Parser which prints the current position.
 public func debug(msg: String, file: StaticString = #file, line: Int = #line) -> Parser<()> {
     return Parser { input in
         debugPrint("\(file):\(line): debug(\(input.position.right)) \(msg)")
         return ((), input)
     }
 }
+/// Debugging Parser which wraps any parser and prints its result.
 public func debug<Result>(_ p: Parser<Result>, file: StaticString = #file, line: Int = #line) -> Parser<Result> {
     return Parser { input in
         do {

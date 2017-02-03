@@ -51,9 +51,15 @@ func detectSectionStart(underlineChars: String = "=-~_+'\"") -> Parser<Character
     }
 }
 
+/// Parser which creates the element instance.
+///
+/// If available, it consumes the element specification (up to the colon)
+/// and creates a corresponding element.
+/// Otherwise, it creates a default 'section' element.
 private let namedElementOrSection =
     (elementStartNameParser <|> pure("section")) >>- elementCreateBlockParser
 
+/// Parser which produces a list of lines which belong to the content.
 private func contentLines(level: Character) -> Parser<[Line]> {
     let nextSection = detectSectionStart(underlineChars: String(level))
     return Parser { input in
@@ -71,6 +77,7 @@ private func contentLines(level: Character) -> Parser<[Line]> {
     }
 }
 
+/// Parses all lines up to the start of the next section as one block.
 private func content(underline: Character) -> Parser<()> {
     return satisfying {$0.atEndOfBlock} <|> (
         emptyLine *>
@@ -78,6 +85,10 @@ private func content(underline: Character) -> Parser<()> {
     )
 }
 
+/// Parser for a section of titled content.
+///
+/// Matches the title line which has to be followed by underline characters.
+/// All following lines up to another such title line are parsed as content.
 public let titledContent = lookahead(detectSectionStart()) >>- { underline in
     element(
         namedElementOrSection *> elementTitleLine *> endOfLine *>

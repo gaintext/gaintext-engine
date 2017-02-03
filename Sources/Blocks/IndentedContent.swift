@@ -12,14 +12,22 @@ import Engine
 import Runes
 
 
+/// Parser for one element with indented content.
+///
+/// Consumes the title line and any following indented lines.
+/// The indented part will be parsed as a new block containing the
+/// content of the new element.
 public let elementWithIndentedContent = element(
     elementStartBlockParser *> optional(whitespace) *> elementTitleLine *>
     endOfLine *>
     optional(indentationParser >>- subBlock(elementBody), otherwise: ())
 )
 
+/// Parser producing an error node spanning the whole line.
 private let errorNoElement = errorLine(errorType: ErrorNodeType("no element"))
 
+/// Parser for a block of adjacent elements.
+/// An error is generated for any lines with unrecognized elements.
 public let elementBlockParser =
     list(first: elementWithIndentedContent,
          following: satisfying {!$0.atEndOfBlock && !$0.atWhitespaceOnlyLine} *>

@@ -80,6 +80,7 @@ public func errorMarker(_ msg: String) -> Parser<[Node]> {
     }
 }
 
+/// Parser returning an error marker covering the rest of the block.
 public func errorBlock(errorType: ErrorNodeType) -> Parser<[Node]> {
     return Parser { input in
         var cursor = input
@@ -89,6 +90,7 @@ public func errorBlock(errorType: ErrorNodeType) -> Parser<[Node]> {
     }
 }
 
+/// Parser returning an error marker covering the rest of the line.
 public func errorLine(errorType: ErrorNodeType) -> Parser<[Node]> {
     return Parser { input in
         var cursor = input
