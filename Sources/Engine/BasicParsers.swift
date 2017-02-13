@@ -146,7 +146,8 @@ private let identifierChars = "_@0123456789"
 /// Parser which matches identifiers (all alpha-numerical characters).
 public let identifier = collect(fromSet: Set(identifierChars.characters))
 
-public let whitespace = collect(takeWhile: { $0.atWhitespace })
+/// Parser which matches consequtive white-space characters.
+public let whitespace = collect(min: 1, takeWhile: { $0.atWhitespace })
 
 /// Parser which matches a quoted string.
 ///
@@ -217,10 +218,17 @@ public let advanceLine = Parser<()> { input in
 }
 
 /// Parser which consumes the end-of-line and moves to the next line.
-public let endOfLine = satisfying {$0.atEndOfLine} *> advanceLine
+public let endOfLine = satisfying {
+    !$0.atEndOfBlock && $0.atEndOfLine
+} *> advanceLine
+
+/// Parser which only matches at the end of a block.
+public let endOfBlock = satisfying { $0.atEndOfBlock }
 
 /// Parser which consumes one empty line.
-public let emptyLine = satisfying {$0.atWhitespaceOnlyLine} *> advanceLine
+public let emptyLine = satisfying {
+    !$0.atEndOfBlock && $0.atWhitespaceOnlyLine
+} *> advanceLine
 
 /// Parser which consumes empty lines.
 public let skipEmptyLines = Parser<()> { input in
@@ -251,112 +259,4 @@ public func debug<Result>(_ p: Parser<Result>, file: StaticString = #file, line:
             throw e
         }
     }
-}
-
-
-
-public class ListParser: NodeParser {
-    public init(_ delegate: NodeParser, min: Int = 0, max: Int = 0, skip: NodeParser? = nil) {
-        self.delegate = delegate
-        self.minCount = min
-        self.maxCount = max
-        self.skip = skip
-    }
-
-    public func parse(_ cursor: Cursor) throws -> ([Node], Cursor) {
-        var content: [Node] = []
-        var newCursor = cursor
-
-        if let skip = skip {
-            let (_, skipped) = try skip.parse(cursor)
-            newCursor = skipped
-        }
-
-        while !newCursor.atEndOfBlock {
-            guard maxCount==0 || content.count < maxCount else { break }
-            do {
-                let (nodes, cursor) = try delegate.parse(newCursor)
-                content += nodes
-                newCursor = cursor
-            } catch {
-                break
-            }
-
-            if let skip = skip {
-                let (_, skipped) = try skip.parse(newCursor)
-                newCursor = skipped
-            }
-        }
-        guard content.count >= minCount else {
-            throw ParserError.notFound(position: cursor.position)
-        }
-        return (content, newCursor)
-    }
-
-    let delegate: NodeParser
-    let skip: NodeParser?
-    let minCount: Int
-    let maxCount: Int
-}
-
-public struct TextLineParser: NodeParser {
-    public init() {}
-
-    public func parse(_ cursor: Cursor) throws -> ([Node], Cursor) {
-        var cursor = cursor
-        let start = cursor.position
-        guard !cursor.atEndOfBlock else {
-            throw ParserError.endOfScope(position: cursor.position)
-        }
-
-        var whitespaceOnly = true
-        while !cursor.atEndOfLine {
-            if whitespaceOnly && !cursor.atWhitespace { whitespaceOnly = false }
-            try! cursor.advance()
-        }
-        guard !whitespaceOnly else {
-            throw ParserError.endOfScope(position: cursor.position)
-        }
-        let node = Node(start: start, end: cursor, nodeType: TextLineParser.nodeType)
-        try! cursor.advanceLine()
-        return ([node], cursor)
-    }
-
-    class TextNodeType: NodeType {
-        let name = "text"
-        func constructAST(_ node: Node) -> ASTNode {
-            return .text(node.sourceContent)
-        }
-    }
-
-    static let nodeType = TextNodeType()
-}
-
-public struct CodeLineParser: NodeParser {
-    public init() {}
-
-    public func parse(_ cursor: Cursor) throws -> ([Node], Cursor) {
-        var cursor = cursor
-        let start = cursor.position
-        guard !cursor.atEndOfBlock else {
-            throw ParserError.endOfScope(position: cursor.position)
-        }
-
-        while !cursor.atEndOfLine {
-            try! cursor.advance()
-        }
-        let node = Node(start: start, end: cursor, nodeType: CodeLineParser.nodeType)
-        try! cursor.advanceLine()
-        return ([node], cursor)
-    }
-
-    // TBD
-    class CodeNodeType: NodeType {
-        let name = "code-text"
-        func constructAST(_ node: Node) -> ASTNode {
-            return .text(node.sourceContent)
-        }
-    }
-
-    static let nodeType = CodeNodeType()
 }

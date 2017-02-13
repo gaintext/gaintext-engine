@@ -63,15 +63,28 @@ private class TextNodeType: NodeType {
 }
 private let textNodeType = TextNodeType()
 
-public func textNode<Content>(_ content: Parser<Content>) -> Parser<[Node]> {
+private class CodeNodeType: NodeType {
+    let name = "code-text"
+    func constructAST(_ node: Node) -> ASTNode {
+        return .text(node.sourceContent)
+    }
+}
+private let codeNodeType = CodeNodeType()
+
+/// Parser wrapping the result of another parser in one text node.
+public func textNode<Content>(_ content: Parser<Content>, type: NodeType = textNodeType) -> Parser<[Node]> {
     return Parser { input in
         let start = input.position
         let (_, end) = try content.parse(input)
-        let node = Node(start: start, end: end, nodeType: textNodeType)
+        let node = Node(start: start, end: end, nodeType: type)
         return ([node], end)
     }
 }
 
+/// Parser for one line of code.
+public let codeLine = textNode(wholeLine, type: codeNodeType) <* advanceLine
+
+/// Parser returning an error marker at the current position.
 public func errorMarker(_ msg: String) -> Parser<[Node]> {
     let nodeType = ErrorNodeType(msg)
     return Parser { input in
@@ -101,14 +114,7 @@ public func errorLine(errorType: ErrorNodeType) -> Parser<[Node]> {
     }
 }
 
-/// Create a new parser which returns an error node when the input parser fails.
-public func wholeBlock(errorType: ErrorNodeType, _ content: Parser<[Node]>) -> Parser<[Node]> {
-    return (content <* satisfying { $0.atEndOfBlock }) <|> errorBlock(errorType: errorType)
-}
-
-/// Create a new parser which returns an error node when the input parser fails.
-public func wholeLine(errorType: ErrorNodeType, _ content: Parser<[Node]>) -> Parser<[Node]> {
-    return (content <* satisfying { $0.atEndOfLine }) <|> errorLine(errorType: errorType)
-}
-
-
+/// Parser producing an error block when
+public let expectEndOfBlock =
+    (satisfying {$0.atEndOfBlock} *> pure([])) <|> errorBlock(errorType: unexpectedInputError)
+private let unexpectedInputError = ErrorNodeType("unexpected input")

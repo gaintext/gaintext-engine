@@ -41,7 +41,7 @@ public func createTextNode(start: Position, end: Cursor) -> Node {
 
 public struct TextWithMarkupParser: SpanParser {
 
-    public init(markup: NodeParser) {
+    public init(markup: Parser<[Node]>) {
         self.markup = markup
     }
 
@@ -82,7 +82,7 @@ public struct TextWithMarkupParser: SpanParser {
         throw ParserError.notFound(position: cursor.position)
     }
 
-    private let markup: NodeParser
+    private let markup: Parser<[Node]>
 }
 
 public struct RawTextParser: SpanParser {
@@ -111,10 +111,9 @@ public struct RawTextParser: SpanParser {
 
 
 /// Parse one complete line using the current span parser
-public class LineParser: NodeParser {
-    public init() {}
-
-    public func parse(_ cursor: Cursor) throws -> ([Node], Cursor) {
-        return try cursor.scope.spanParser.parse(cursor: cursor, until: endOfLine)
+public let lineParser = Parser<[Node]> { input in
+    guard !input.atEndOfBlock else {
+        throw ParserError.notFound(position: input.position)
     }
+    return try input.scope.spanParser.parse(cursor: input, until: endOfLine)
 }

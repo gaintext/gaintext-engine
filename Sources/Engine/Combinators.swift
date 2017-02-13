@@ -135,6 +135,9 @@ public func list<Result>(first: Parser<[Result]>, following: Parser<[Result]>) -
         var (result, tail) = try first.parse(input)
         while true {
             do {
+                guard !tail.atEndOfBlock else {
+                    throw ParserError.endOfScope(position: tail.position)
+                }
                 let (item, next) = try following.parse(tail)
                 tail = next
                 result += item
@@ -147,4 +150,7 @@ public func list<Result>(first: Parser<[Result]>, following: Parser<[Result]>) -
 
 public func list<Result, Sep>(_ parser: Parser<[Result]>, separator: Parser<Sep>) -> Parser<[Result]> {
     return list(first: parser, following: separator *> parser)
+}
+public func list<Result>(_ parser: Parser<[Result]>) -> Parser<[Result]> {
+    return list(first: parser, following: parser)
 }

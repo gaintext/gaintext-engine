@@ -75,7 +75,7 @@ open class Element {
         }
         return scope.spanParser
     }
-    fileprivate var blockParser: NodeParser {
+    fileprivate var blockParser: Parser<[Node]> {
         if let p = type.bodyParser {
             return p
         }
@@ -125,7 +125,7 @@ open class Element {
     }
     private static let titleError = ErrorNodeType("invalid title")
 
-    private func parseBody(cursor: Cursor, body parser: NodeParser) throws -> Cursor {
+    private func parseBody(cursor: Cursor, body parser: Parser<[Node]>) throws -> Cursor {
         let (nodes, endCursor) = try parser.parse(cursor)
         body += nodes
 
@@ -134,9 +134,10 @@ open class Element {
 
     public func parseBody(block lines: [Line], parent cursor: Cursor) {
         let innerCursor = childCursor(block: lines, parent: cursor)
-        body += blockParser.parseBlock(innerCursor, error: Element.wrongBlockError)
+        let whole = blockParser <+> expectEndOfBlock
+        let (nodes, _) = try! whole.parse(innerCursor)
+        body += nodes
     }
-    private static let wrongBlockError = ErrorNodeType("wrong block")
 
     /// Create the `Node` for this element.
     public func createNode(start: Position, end: Cursor) -> Node {
@@ -154,7 +155,7 @@ open class Element {
 
 let elementBodyParser = Parser<Parser<[Node]>> { input in
     let element = input.scope.element!
-    return (element.blockParser.parser, input)
+    return (element.blockParser, input)
 }
 
 let elementTitleParser = Parser<(Parser<()>) -> Parser<[Node]>> { input in
@@ -170,13 +171,13 @@ let elementTitleParser = Parser<(Parser<()>) -> Parser<[Node]>> { input in
 open class ElementType {
     let name: String
     let nodeType: NodeType
-    let bodyParser: NodeParser?
+    let bodyParser: Parser<[Node]>?
     let titleParser: SpanParser?
     let template: ScopeTemplate
 
     // TBD: maybe use some special "nothing here" parser as default?
     public init(_ name: String, type: NodeType,
-         body: NodeParser? = nil,
+         body: Parser<[Node]>? = nil,
          title: SpanParser? = nil,
          scope template: ScopeTemplate = ScopeTemplate()) {
         self.name = name
@@ -193,7 +194,7 @@ open class ElementType {
 }
 
 extension ElementType {
-    public convenience init(_ name: String, body: NodeParser? = nil, title: SpanParser? = nil) {
+    public convenience init(_ name: String, body: Parser<[Node]>? = nil, title: SpanParser? = nil) {
         self.init(name, type: ElementNodeType(name: name), body: body, title: title)
     }
 }
@@ -255,7 +256,7 @@ extension ScopeTemplate {
 /// represent the complete scope: block elements, ...
 open class Scope {
     public init(blockRegistry: ElementRegistry, markupRegistry: ElementRegistry,
-                blockParser: NodeParser, spanParser: SpanParser, element: Element? = nil) {
+                blockParser: Parser<[Node]>, spanParser: SpanParser, element: Element? = nil) {
         self.blockRegistry = blockRegistry
         self.markupRegistry = markupRegistry
         self.blockParser = blockParser
@@ -296,7 +297,7 @@ open class Scope {
     /// available span-level sub-Elements within this scope
     let markupRegistry: ElementRegistry
 
-    let blockParser: NodeParser
+    let blockParser: Parser<[Node]>
     let spanParser: SpanParser
 
     /// the element which is currently being parsed

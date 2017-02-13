@@ -90,7 +90,9 @@ public func subBlock<Result>(_ p: Parser<Result>) -> ([Line]) -> Parser<Result> 
         Parser<Result> { outside in
             let element = outside.scope.element!
             let inside = element.childCursor(block: lines, parent: outside)
-            let (result, _) = try p.parse(inside)
+            let (result, tail) = try p.parse(inside)
+            // content parser has to consume the complete block
+            assert(tail.atEndOfBlock)
             return (result, outside)
         }
     }

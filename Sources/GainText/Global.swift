@@ -13,29 +13,28 @@ import Blocks
 import Markup
 import Runes
 
-private var blockParser: NodeParser {
+private let blockParser = list(
+    titledContent <|> elementBlockParser <|> lineDelimitedContent <|> paragraph,
+    separator: skipEmptyLines
+)
 
-    return ListParser(WrapParser(
-        titledContent <|> elementBlockParser <|> lineDelimitedContent <|> paragraph
-    ))
-}
 
-private let spanParser = TextWithMarkupParser(markup: WrapParser(cached(
+private let spanParser = TextWithMarkupParser(markup: cached(
     escaped <|> spanWithBrackets <|> spanWithDelimiters
-)))
+))
 
 
 private func registerElements(global scope: Scope) {
     let blockElements = [
 //        ImportElementType(),
 //        DefinitionElementType(),
-        ElementType("p", body: ListParser(LineParser())),
+        ElementType("p", body: list(lineParser)),
         ElementType("section"),
         ElementType("example"),
         ElementType("math"),
         ElementType("table"),
         ElementType("TBD"),
-        ElementType("code", body: ListParser(CodeLineParser()))
+        ElementType("code", body: list(codeLine))
     ]
     for element in blockElements {
         scope.register(block: element)

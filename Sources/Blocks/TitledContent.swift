@@ -79,9 +79,11 @@ private func contentLines(level: Character) -> Parser<[Line]> {
 
 /// Parses all lines up to the start of the next section as one block.
 private func content(underline: Character) -> Parser<()> {
-    return satisfying {$0.atEndOfBlock} <|> (
-        emptyLine *>
-        contentLines(level: underline) >>- subBlock(elementBody)
+    return  (
+        emptyLine *> skipEmptyLines *>
+        contentLines(level: underline) >>- subBlock(
+            elementBody <* elementContent(expectEndOfBlock)
+        )
     )
 }
 
@@ -94,6 +96,6 @@ public let titledContent = lookahead(detectSectionStart()) >>- { underline in
         namedElementOrSection *> elementTitleLine *> endOfLine *>
         advanceLine *> // line with underline characters
         elementAttribute(.text("underline", String(underline))) *>
-        content(underline: underline)
+        (skipEmptyLines *> endOfBlock <|> content(underline: underline))
     )
 }

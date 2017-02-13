@@ -22,13 +22,6 @@ func report<T>(_ f: @autoclosure () throws -> T, file: FileString = #file, line:
     }
 }
 
-func parse(_ r: NodeParser, _ cursor: Cursor, file: FileString = #file, line: UInt = #line) throws -> ([Node], Cursor) {
-    return try report(try r.parse(cursor), file: file, line: line)
-}
-func parse(_ r: NodeParser, _ doc: Document, file: FileString = #file, line: UInt = #line) throws -> ([Node], Cursor) {
-    return try report(try r.parse(doc.start()), file: file, line: line)
-}
-
 func parse<Result>(_ p: Parser<Result>, _ cursor: Cursor, file: FileString = #file, line: UInt = #line) throws -> (Result, Cursor) {
     return try report(try p.parse(cursor), file: file, line: line)
 }

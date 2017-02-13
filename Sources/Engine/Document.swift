@@ -42,9 +42,10 @@ extension Document {
 
     /// Parse the entire document
     public func parse() -> [Node] {
-        return global.blockParser.parseBlock(start(), error: Document.unexpectedInputError)
+        let whole = global.blockParser <+> expectEndOfBlock
+        let (nodes, _) = try! whole.parse(start())
+        return nodes
     }
-    private static let unexpectedInputError = ErrorNodeType("unexpected input")
 }
 
 extension Document {
