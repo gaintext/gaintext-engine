@@ -8,9 +8,13 @@
 // (at your option) any later version.
 //
 
+import Runes
+
+
 // we have two types of errors:
 // * parser does not match at all -> throw an Error
 // * parser matches, but finds error in input -> create an error node
+
 
 /// Error thrown when a parser does not match.
 public enum ParserError: Error {
@@ -38,35 +42,37 @@ public class ErrorNodeType: NodeType {
     let message: String
 }
 
-/// Create a new node representing an error message.
-///
-/// The new node will conain the whole rest of the current block.
-private func createLineErrorNode(at start: Cursor, _ error: ErrorNodeType) -> (Node, Cursor) {
-    var end = start
-    while !end.atEndOfLine { try! end.advance() }
-    let node = Node(start: start.position, end: end, nodeType: error)
-    return (node, end)
-}
-
-/// Create a new node representing an error message.
-///
-/// The new node will conain the whole rest of the current block.
-private func createBlockErrorNode(at start: Cursor, _ error: ErrorNodeType) -> Node {
-    var end = start
-    while !end.atEndOfBlock { try! end.advanceLine() }
-    return Node(start: start.position, end: end, nodeType: error)
-}
-
-
-extension SpanParser {
-    /// Use the `SpanParser` to parse a complete line.
-    /// Returns an error node instead of throwing.
-    func parseLine(_ cursor: Cursor, error nodeType: ErrorNodeType) -> ([Node], Cursor) {
-        do {
-            return try parse(cursor: cursor, until: satisfying {$0.atEndOfLine})
-        } catch {
-            let (errorNode, errorCursor) = createLineErrorNode(at: cursor, nodeType)
-            return ([errorNode], errorCursor)
-        }
+/// Parser returning an error marker at the current position.
+public func errorMarker(_ msg: String) -> Parser<[Node]> {
+    let nodeType = ErrorNodeType(msg)
+    return Parser { input in
+        let node = Node(start: input.position, end: input, nodeType: nodeType)
+        return ([node], input)
     }
 }
+
+/// Parser returning an error marker covering the rest of the block.
+public func errorBlock(errorType: ErrorNodeType) -> Parser<[Node]> {
+    return Parser { input in
+        var cursor = input
+        while !cursor.atEndOfBlock { try! cursor.advanceLine() }
+        let node = Node(start: input.position, end: cursor, nodeType: errorType)
+        return ([node], cursor)
+    }
+}
+
+/// Parser returning an error marker covering the rest of the line.
+public func errorLine(errorType: ErrorNodeType) -> Parser<[Node]> {
+    return Parser { input in
+        var cursor = input
+        while !cursor.atEndOfLine { try! cursor.advance() }
+        let node = Node(start: input.position, end: cursor, nodeType: errorType)
+        try cursor.advanceLine()
+        return ([node], cursor)
+    }
+}
+
+/// Parser producing an error block for any unconsumed input of this block.
+public let expectEndOfBlock =
+    (satisfying {$0.atEndOfBlock} *> pure([])) <|> errorBlock(errorType: unexpectedInputError)
+private let unexpectedInputError = ErrorNodeType("unexpected input")

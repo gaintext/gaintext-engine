@@ -71,6 +71,10 @@ private class CodeNodeType: NodeType {
 }
 private let codeNodeType = CodeNodeType()
 
+public func textNode(start: Position, end: Cursor) -> Node {
+    return Node(start: start, end: end, nodeType: textNodeType)
+}
+
 /// Parser wrapping the result of another parser in one text node.
 public func textNode<Content>(_ content: Parser<Content>, type: NodeType = textNodeType) -> Parser<[Node]> {
     return Parser { input in
@@ -83,38 +87,3 @@ public func textNode<Content>(_ content: Parser<Content>, type: NodeType = textN
 
 /// Parser for one line of code.
 public let codeLine = textNode(wholeLine, type: codeNodeType) <* advanceLine
-
-/// Parser returning an error marker at the current position.
-public func errorMarker(_ msg: String) -> Parser<[Node]> {
-    let nodeType = ErrorNodeType(msg)
-    return Parser { input in
-        let node = Node(start: input.position, end: input, nodeType: nodeType)
-        return ([node], input)
-    }
-}
-
-/// Parser returning an error marker covering the rest of the block.
-public func errorBlock(errorType: ErrorNodeType) -> Parser<[Node]> {
-    return Parser { input in
-        var cursor = input
-        while !cursor.atEndOfBlock { try! cursor.advanceLine() }
-        let node = Node(start: input.position, end: cursor, nodeType: errorType)
-        return ([node], cursor)
-    }
-}
-
-/// Parser returning an error marker covering the rest of the line.
-public func errorLine(errorType: ErrorNodeType) -> Parser<[Node]> {
-    return Parser { input in
-        var cursor = input
-        while !cursor.atEndOfLine { try! cursor.advance() }
-        let node = Node(start: input.position, end: cursor, nodeType: errorType)
-        try cursor.advanceLine()
-        return ([node], cursor)
-    }
-}
-
-/// Parser producing an error block when
-public let expectEndOfBlock =
-    (satisfying {$0.atEndOfBlock} *> pure([])) <|> errorBlock(errorType: unexpectedInputError)
-private let unexpectedInputError = ErrorNodeType("unexpected input")

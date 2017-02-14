@@ -19,3 +19,6 @@ public struct Parser<Result> {
         self.parse = parse
     }
 }
+
+/// A parser for an embedded span, parameterized by an endMarker parser.
+public typealias SpanParser = (Parser<()>) -> Parser<[Node]>

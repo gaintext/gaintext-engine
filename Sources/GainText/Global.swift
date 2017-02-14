@@ -19,7 +19,7 @@ private let blockParser = list(
 )
 
 
-private let spanParser = TextWithMarkupParser(markup: cached(
+private let spanParser = textWithMarkupParser(markup: cached(
     escaped <|> spanWithBrackets <|> spanWithDelimiters
 ))
 
@@ -46,8 +46,8 @@ private func registerElements(global scope: Scope) {
         ElementType("TBD"),
         ElementType("em"),
         ElementType("math"),
-        ElementType("code", title: RawTextParser()),
-        ElementType("raw", title: RawTextParser())
+        ElementType("code", title: rawTextParser),
+        ElementType("raw", title: rawTextParser)
     ]
     for element in markupElements {
         scope.register(markup: element)

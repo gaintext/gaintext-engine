@@ -90,55 +90,6 @@ open class Element {
         titleAttributes.append(attribute)
     }
 
-    /// Parse the title of a block element or the body of a span element.
-    ///
-    /// All parsed title nodes are stored in the element and used to
-    /// construct the element's node.
-    ///
-    /// Either uses the element-type specific parser or a default parser
-    /// from the current scope.
-    public func parseSpan(cursor: Cursor, until endMarker: Parser<()>) throws -> Cursor {
-        let (nodes, next) = try titleParser.parse(cursor: cursor, until: endMarker)
-        title += nodes
-        return next
-    }
-
-    /// Parse the title of a block element or the body of a span element.
-    ///
-    /// All parsed title nodes are wrapped in one 'title' node which is
-    /// stored in the element and used to construct the element's node.
-    ///
-    /// Either uses the element-type specific parser or a default parser
-    /// from the current scope.
-    ///
-    /// Always parses up to the end of the line.
-    /// In case of any error, an error node is produced instead of
-    /// throwing or returning early.
-    public func parseTitle(cursor: Cursor) {
-        let start = cursor.position
-        let (nodes, end) = titleParser.parseLine(cursor, error: Element.titleError)
-        title += nodes
-        guard !title.isEmpty else { return }
-        let node = Node(start: start, end: end, nodeType: Element.titleNodeType,
-                           attributes: titleAttributes, children: title)
-        title = [node]
-    }
-    private static let titleError = ErrorNodeType("invalid title")
-
-    private func parseBody(cursor: Cursor, body parser: Parser<[Node]>) throws -> Cursor {
-        let (nodes, endCursor) = try parser.parse(cursor)
-        body += nodes
-
-        return endCursor
-    }
-
-    public func parseBody(block lines: [Line], parent cursor: Cursor) {
-        let innerCursor = childCursor(block: lines, parent: cursor)
-        let whole = blockParser <+> expectEndOfBlock
-        let (nodes, _) = try! whole.parse(innerCursor)
-        body += nodes
-    }
-
     /// Create the `Node` for this element.
     public func createNode(start: Position, end: Cursor) -> Node {
         let node = Node(start: start, end: end, nodeType: type.nodeType,
@@ -160,7 +111,7 @@ let elementBodyParser = Parser<Parser<[Node]>> { input in
 
 let elementTitleParser = Parser<(Parser<()>) -> Parser<[Node]>> { input in
     let element = input.scope.element!
-    return (element.titleParser.parser, input)
+    return (element.titleParser, input)
 }
 
 
@@ -194,7 +145,9 @@ open class ElementType {
 }
 
 extension ElementType {
-    public convenience init(_ name: String, body: Parser<[Node]>? = nil, title: SpanParser? = nil) {
+    public convenience init(_ name: String,
+                            body: Parser<[Node]>? = nil,
+                            title: SpanParser? = nil) {
         self.init(name, type: ElementNodeType(name: name), body: body, title: title)
     }
 }
@@ -255,8 +208,11 @@ extension ScopeTemplate {
 
 /// represent the complete scope: block elements, ...
 open class Scope {
-    public init(blockRegistry: ElementRegistry, markupRegistry: ElementRegistry,
-                blockParser: Parser<[Node]>, spanParser: SpanParser, element: Element? = nil) {
+    public init(blockRegistry: ElementRegistry,
+                markupRegistry: ElementRegistry,
+                blockParser: Parser<[Node]>,
+                spanParser: @escaping SpanParser,
+                element: Element? = nil) {
         self.blockRegistry = blockRegistry
         self.markupRegistry = markupRegistry
         self.blockParser = blockParser
