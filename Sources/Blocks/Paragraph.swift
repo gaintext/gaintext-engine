@@ -9,17 +9,11 @@
 //
 
 import Engine
+import Runes
 
 
-/// Parse text lines into a paragraph.
-/// Uses the element `p` to parse all lines up to the next empty line.
-public let paragraph = Parser<[Node]> { input in
-    let start = input.position
+private let contentLines = Parser<[Line]> { input in
     var cursor = input
-
-    guard !cursor.atEndOfBlock else {
-        throw ParserError.endOfScope(position: cursor.position)
-    }
     var lines: [Line] = []
     while !cursor.atEndOfBlock {
         guard !cursor.atWhitespaceOnlyLine else { break }
@@ -29,15 +23,12 @@ public let paragraph = Parser<[Node]> { input in
     guard lines.count > 0 else {
         throw ParserError.notFound(position: cursor.position)
     }
-
-    guard let element = cursor.scope.block(name: "p") else {
-        throw ParserError.notFound(position: start)
-    }
-    element.parseBody(block: lines, parent: cursor)
-
-    let node = element.createNode(start: start, end: cursor)
-
-    cursor.skipEmptyLines()
-
-    return ([node], cursor)
+    return (lines, cursor)
 }
+
+/// Parse text lines into a paragraph.
+/// Uses the element `p` to parse all lines up to the next empty line.
+public let paragraph = not(endOfBlock) *> element(
+    elementCreateBlockParser(name: "p") *>
+    contentLines >>- subBlock(elementBody)
+) <* skipEmptyLines

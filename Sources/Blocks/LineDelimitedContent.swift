@@ -12,62 +12,55 @@ import Engine
 import Runes
 
 
-private let blockDelimiter = Parser<Element> { input in
-    var cursor = input
-    guard !cursor.atEndOfBlock && !cursor.atEndOfLine else {
+private let blockDelimiterLine = Parser<String> { input in
+    guard !input.atEndOfBlock && !input.atEndOfLine else {
         throw ParserError.notFound(position: input.position)
     }
-    let key = cursor.char
-
-    guard let element = cursor.scope.block(name: "block:\(key)") else {
-        throw ParserError.notFound(position: input.position)
-    }
-    try! cursor.advance()
+    let key = input.char
+    var tail = input
+    try! tail.advance()
 
     var count = 1
-    while !cursor.atEndOfLine {
-        guard cursor.char == key else {
+    while !tail.atEndOfLine {
+        guard tail.char == key else {
             break
         }
-        try! cursor.advance()
+        try! tail.advance()
         count += 1
     }
     guard count >= 3 else {
         throw ParserError.notFound(position: input.position)
     }
 
-    return (element, cursor)
+    return (tail.head(from: input.position), tail)
 }
 
 
-public let lineDelimitedContent = Parser<[Node]> { input in
-    let start = input.position
-    var (element, cursor) = try blockDelimiter.parse(input)
-    let delimiter = cursor.head(from: start)
-    cursor.skipWhitespace()
-    element.parseTitle(cursor: cursor)
-    try cursor.advanceLine()
-
-    guard !cursor.atEndOfBlock else {
-        throw ParserError.endOfScope(position: cursor.position)
-    }
-
-    var lines: [Line] = []
-    while cursor.tail != delimiter {
-        lines.append(cursor.line)
-        try! cursor.advanceLine()
+private func contentLines(until delimiter: String) -> Parser<[Line]> {
+    return Parser { input in
+        var cursor = input
+        var lines: [Line] = []
         guard !cursor.atEndOfBlock else {
             throw ParserError.endOfScope(position: cursor.position)
         }
+        while cursor.tail != delimiter {
+            lines.append(cursor.line)
+            try! cursor.advanceLine()
+            guard !cursor.atEndOfBlock else {
+                throw ParserError.endOfScope(position: cursor.position)
+            }
+        }
+        try! cursor.advanceLine()
+        return (lines, cursor)
     }
-    try! cursor.advanceLine()
-
-    element.parseBody(block: lines, parent: cursor)
-    element.addAttribute(.text("delimiter", delimiter))
-
-    let node = element.createNode(start: start, end: cursor)
-
-    cursor.skipEmptyLines()
-
-    return ([node], cursor)
 }
+
+public let lineDelimitedContent =
+    lookahead(blockDelimiterLine) >>- { delimiter in
+        element(
+            elementCreateBlockParser(name: "block:\(delimiter.characters.first!)") *>
+            literal(delimiter) *> optional(whitespace) *> elementTitleLine *> endOfLine *>
+            elementAttribute(.text("delimiter", String(delimiter))) *>
+            contentLines(until: delimiter) >>- subBlock(elementBody)
+        )
+    }
