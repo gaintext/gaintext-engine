@@ -1,0 +1,18 @@
+{
+  "autoPin": true,
+  "pins": [
+    {
+      "package": "Nimble",
+      "reason": null,
+      "repositoryURL": "https://github.com/Quick/Nimble",
+      "version": "6.0.1"
+    },
+    {
+      "package": "Runes",
+      "reason": null,
+      "repositoryURL": "https://github.com/thoughtbot/Runes",
+      "version": "4.0.1"
+    }
+  ],
+  "version": 1
+}
