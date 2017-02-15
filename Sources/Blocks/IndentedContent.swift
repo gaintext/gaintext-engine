@@ -18,7 +18,7 @@ import Runes
 /// The indented part will be parsed as a new block containing the
 /// content of the new element.
 public let elementWithIndentedContent = element(
-    elementStartBlockParser *> optional(whitespace) *> elementTitleLine *>
+    elementStartBlockParser *> elementTitleLine *>
     endOfLine *>
     optional(indentationParser >>- subBlock(elementBody))
 )

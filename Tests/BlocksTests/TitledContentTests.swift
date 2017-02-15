@@ -187,6 +187,92 @@ class TitledContentTests: XCTestCase {
         expect(cursor.atEndOfBlock) == true
     }
 
+    func testId() throws {
+        let doc = Document(source: "section #name: abc\n===\n")
+        let p = titledContent
+
+        let (nodes, tail) = try parse(p, doc)
+        expect(nodes).to(haveCount(1))
+        let node = nodes[0]
+
+        expect(node.nodeType.name) == "section"
+        expect(node.children).to(haveCount(2))
+
+        let title = node.children[0]
+        expect(title.nodeType.name) == "title"
+        expect(title.sourceContent) == "abc"
+
+        let attr = node.children[1]
+        expect(attr.nodeType.name) == "attribute"
+        expect(attr.children).to(haveCount(2))
+        expect(attr.children[0].nodeType.name) == "attribute-key"
+        expect(attr.children[0].attributes) == [.text("name", "id")]
+        expect(attr.children[1].nodeType.name) == "attribute-value"
+        expect(attr.children[1].attributes) == [.text("value", "name")]
+
+        expect(tail.atEndOfBlock) == true
+    }
+
+    func testClass() throws {
+        let doc = Document(source: "section .name: abc\n===\n")
+        let p = titledContent
+
+        let (nodes, tail) = try parse(p, doc)
+        expect(nodes).to(haveCount(1))
+        let node = nodes[0]
+
+        expect(node.nodeType.name) == "section"
+        expect(node.children).to(haveCount(2))
+
+        let title = node.children[0]
+        expect(title.nodeType.name) == "title"
+        expect(title.sourceContent) == "abc"
+
+        let attr = node.children[1]
+        expect(attr.nodeType.name) == "attribute"
+        expect(attr.children).to(haveCount(2))
+        expect(attr.children[0].nodeType.name) == "attribute-key"
+        expect(attr.children[0].attributes) == [.text("name", "class")]
+        expect(attr.children[1].nodeType.name) == "attribute-value"
+        expect(attr.children[1].attributes) == [.text("value", "name")]
+
+        expect(tail.atEndOfBlock) == true
+    }
+
+    func testCombination() throws {
+        let doc = Document(source: "section #name x=y: title text\n===\n\ncontent\n")
+        let p = titledContent
+
+        let (nodes, tail) = try parse(p, doc)
+        expect(nodes).to(haveCount(1))
+        let node = nodes[0]
+
+        expect(node.nodeType.name) == "section"
+        expect(node.children).to(haveCount(4))
+
+        let title = node.children[0]
+        expect(title.nodeType.name) == "title"
+        expect(title.sourceContent) == "title text"
+
+        let id = node.children[1]
+        expect(id.nodeType.name) == "attribute"
+        expect(id.children).to(haveCount(2))
+        expect(id.children[0].attributes) == [.text("name", "id")]
+        expect(id.children[1].attributes) == [.text("value", "name")]
+
+        let attr = node.children[2]
+        expect(attr.nodeType.name) == "attribute"
+        expect(attr.children).to(haveCount(2))
+        expect(attr.children[0].attributes) == [.text("name", "x")]
+        expect(attr.children[1].attributes) == [.text("value", "y")]
+
+        let content = node.children[3]
+        expect(content.nodeType.name) == "p"
+        expect(content.sourceContent) == "content"
+
+        expect(tail.atEndOfBlock) == true
+    }
+
     static var allTests : [(String, (TitledContentTests) -> () throws -> Void)] {
         return [
             ("testEmpty", testEmpty),
@@ -196,6 +282,9 @@ class TitledContentTests: XCTestCase {
             ("testEmptyElement", testEmptyElement),
             ("testSimpleSection", testSimpleSection),
             ("testHierarchical", testHierarchical),
+            ("testId", testId),
+            ("testClass", testClass),
+            ("testCombination", testCombination),
         ]
     }
 }

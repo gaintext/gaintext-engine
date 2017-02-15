@@ -57,7 +57,7 @@ func detectSectionStart(underlineChars: String = "=-~_+'\"") -> Parser<Character
 /// and creates a corresponding element.
 /// Otherwise, it creates a default 'section' element.
 private let namedElementOrSection =
-    (elementStartNameParser <|> pure("section")) >>- elementCreateBlockParser
+    elementStartBlockParser <|> elementCreateBlockParser(name: "section")
 
 /// Parser which produces a list of lines which belong to the content.
 private func contentLines(level: Character) -> Parser<[Line]> {

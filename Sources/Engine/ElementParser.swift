@@ -11,8 +11,6 @@
 import Runes
 
 
-public let elementStartNameParser = identifier <* literal(":") <* optional(whitespace)
-
 public func elementCreateBlockParser(name: String) -> Parser<()> {
     return Parser { input in
         let scope = input.scope
@@ -26,8 +24,6 @@ public func elementCreateBlockParser(name: String) -> Parser<()> {
         return ((), input)
     }
 }
-public let elementStartBlockParser = (identifier >>- elementCreateBlockParser) *>
-    elementContent(attributesParser(literal(":")*>pure(()))) *> optional(whitespace)
 
 public func elementCreateMarkupParser(name: String) -> Parser<()> {
     return Parser { input in
@@ -42,8 +38,24 @@ public func elementCreateMarkupParser(name: String) -> Parser<()> {
         return ((), input)
     }
 }
-public let elementStartMarkupParser = elementStartNameParser >>- elementCreateMarkupParser
 
+private let attributesFollowedByColon = elementContent(attributesParser(literal(":")*>pure(())))
+
+/// Parser for the start of a markup element definition
+///
+/// Consumes the element name, optional attributes and the colon (`:`).
+/// Creates a corresponding element in the current scope.
+public let elementStartBlockParser = (identifier >>- elementCreateBlockParser) *>
+    attributesFollowedByColon <* optional(whitespace)
+
+/// Parser for the start of a markup element definition
+///
+/// Consumes the element name, optional attributes and the colon (`:`).
+/// Creates a corresponding element in the current scope.
+public let elementStartMarkupParser = (identifier >>- elementCreateMarkupParser) *>
+    attributesFollowedByColon <* optional(whitespace)
+
+/// Parser adding the specified attribute to the currently parsed element.
 public func elementAttribute(_ attr: NodeAttribute) -> Parser<()> {
     return Parser { input in
         let element = input.scope.element!

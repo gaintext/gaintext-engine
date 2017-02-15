@@ -59,7 +59,9 @@ public let lineDelimitedContent =
     lookahead(blockDelimiterLine) >>- { delimiter in
         element(
             elementCreateBlockParser(name: "block:\(delimiter.characters.first!)") *>
-            literal(delimiter) *> optional(whitespace) *> elementTitleLine *> endOfLine *>
+            literal(delimiter) *>
+            optional(elementContent(attributesParser(literal(":")*>pure(())))) *>
+            optional(whitespace) *> elementTitleLine *> endOfLine *>
             elementAttribute(.text("delimiter", String(delimiter))) *>
             contentLines(until: delimiter) >>- subBlock(elementBody)
         )
