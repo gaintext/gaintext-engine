@@ -132,6 +132,9 @@ public func lazy<Result>(_ p: @escaping @autoclosure () -> Parser<Result>) -> Pa
 
 public func list<Result>(first: Parser<[Result]>, following: Parser<[Result]>) -> Parser<[Result]> {
     return Parser { input in
+        guard !input.atEndOfBlock else {
+            throw ParserError.endOfScope(position: input.position)
+        }
         var (result, tail) = try first.parse(input)
         while true {
             do {

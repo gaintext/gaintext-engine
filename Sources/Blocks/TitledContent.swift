@@ -81,9 +81,7 @@ private func contentLines(level: Character) -> Parser<[Line]> {
 private func content(underline: Character) -> Parser<()> {
     return  (
         emptyLine *> skipEmptyLines *>
-        contentLines(level: underline) >>- subBlock(
-            elementBody <* elementContent(expectEndOfBlock)
-        )
+        contentLines(level: underline) >>- elementBodyBlock
     )
 }
 

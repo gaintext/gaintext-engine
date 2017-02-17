@@ -17,6 +17,22 @@ import Nimble
 
 class LineDelimitedTests: XCTestCase {
 
+    func testEmpty() throws {
+        let doc = Document(source: "```\n```\n")
+        let p = lineDelimitedContent
+
+        let (nodes, cursor) = try parse(p, doc)
+        expect(nodes).to(haveCount(1))
+        let node = nodes[0]
+
+        expect(node.document) == doc
+        expect(node.sourceRange) == "1:1..2:3"
+        expect(node.nodeType.name) == "code"
+        expect(node.children).to(haveCount(0))
+
+        expect(cursor.atEndOfBlock) == true
+    }
+
     func testSimple() throws {
         let doc = Document(source: "```\nabc\ndef\n```\n")
         let p = lineDelimitedContent
@@ -175,6 +191,7 @@ class LineDelimitedTests: XCTestCase {
 
     static var allTests : [(String, (LineDelimitedTests) -> () throws -> Void)] {
         return [
+            ("testEmpty", testEmpty),
             ("testSimple", testSimple),
             ("testReject1", testReject1),
             ("testReject2", testReject2),

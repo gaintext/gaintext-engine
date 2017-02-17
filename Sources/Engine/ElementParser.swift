@@ -90,6 +90,11 @@ public func elementContent(_ p: Parser<[Node]>) -> Parser<()> {
 
 public let elementBody = elementBodyParser >>- elementContent
 
+public let elementBodyBlock = subBlock(
+    endOfBlock <|> elementBody <* elementContent(expectEndOfBlock)
+)
+
+
 public func elementSpanBody(until endMarker: Parser<()>) -> Parser<()> {
     return elementTitleParser <*> pure(endMarker) >>- elementTitle
 }

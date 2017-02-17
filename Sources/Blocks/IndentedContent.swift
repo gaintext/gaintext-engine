@@ -20,7 +20,7 @@ import Runes
 public let elementWithIndentedContent = element(
     elementStartBlockParser *> elementTitleLine *>
     endOfLine *>
-    optional(indentationParser >>- subBlock(elementBody))
+    optional(indentationParser, otherwise: []) >>- elementBodyBlock
 )
 
 /// Parser producing an error node spanning the whole line.
