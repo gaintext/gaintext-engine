@@ -32,7 +32,7 @@ private var attribute: Parser<[Node]> {
     return node(type: attrNodeType, p)
 }
 
-private var attributes: Parser<[Node]> {
+public var attributes: Parser<[Node]> {
     return list(attribute, separator: whitespace)
 }
 

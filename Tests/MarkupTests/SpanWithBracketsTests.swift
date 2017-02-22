@@ -92,17 +92,18 @@ class SpanWithBracketsTests: XCTestCase {
         expect(node.nodeType.name) == "test"
         expect(node.children).to(haveCount(2))
 
-        let body = node.children[0]
-        expect(body.nodeType.name) == "text"
-        expect(body.sourceContent) == "text"
-
-        let attr = node.children[1]
+        let attr = node.children[0]
         expect(attr.nodeType.name) == "attribute"
         expect(attr.children).to(haveCount(2))
         expect(attr.children[0].nodeType.name) == "attribute-key"
         expect(attr.children[0].attributes) == [.text("name", "id")]
         expect(attr.children[1].nodeType.name) == "attribute-value"
         expect(attr.children[1].attributes) == [.text("value", "id1")]
+
+        let body = node.children[1]
+        expect(body.nodeType.name) == "text"
+        expect(body.sourceContent) == "text"
+
         expect(cursor.position) == node.range.end
     }
 
@@ -120,11 +121,7 @@ class SpanWithBracketsTests: XCTestCase {
         expect(node.nodeType.name) == "test"
         expect(node.children).to(haveCount(3))
 
-        let body = node.children[0]
-        expect(body.nodeType.name) == "text"
-        expect(body.sourceContent) == "text"
-
-        let attr1 = node.children[1]
+        let attr1 = node.children[0]
         expect(attr1.nodeType.name) == "attribute"
         expect(attr1.children).to(haveCount(2))
         expect(attr1.children[0].nodeType.name) == "attribute-key"
@@ -132,13 +129,17 @@ class SpanWithBracketsTests: XCTestCase {
         expect(attr1.children[1].nodeType.name) == "attribute-value"
         expect(attr1.children[1].attributes) == [.text("value", "class1")]
 
-        let attr2 = node.children[2]
+        let attr2 = node.children[1]
         expect(attr2.nodeType.name) == "attribute"
         expect(attr2.children).to(haveCount(2))
         expect(attr2.children[0].nodeType.name) == "attribute-key"
         expect(attr2.children[0].attributes) == [.text("name", "x")]
         expect(attr2.children[1].nodeType.name) == "attribute-value"
         expect(attr2.children[1].attributes) == [.text("value", "y")]
+
+        let body = node.children[2]
+        expect(body.nodeType.name) == "text"
+        expect(body.sourceContent) == "text"
 
         expect(cursor.position) == node.range.end
     }

@@ -48,9 +48,9 @@ open class Element {
     let type: ElementType
     public let scope: Scope
     public var title: [Node] = []
+    public var attributes: [Node] = []
     public var body: [Node] = []
-    var attributes: [NodeAttribute] = []
-    var titleAttributes: [NodeAttribute] = []
+    private var nodeAttributes: [NodeAttribute] = []
 
     required public init(type: ElementType, scope: Scope) {
         self.type = type
@@ -69,31 +69,34 @@ open class Element {
         return cursor
     }
 
-    fileprivate var titleParser: SpanParser {
-        if let p = type.titleParser {
-            return p
-        }
-        return scope.spanParser
-    }
     fileprivate var blockParser: Parser<[Node]> {
         if let p = type.bodyParser {
             return p
         }
         return scope.blockParser
     }
-
-    public func addAttribute(_ attribute: NodeAttribute) {
-        attributes.append(attribute)
+    fileprivate var titleParser: SpanParser {
+        if let p = type.titleParser {
+            return p
+        }
+        return scope.spanParser
+    }
+    fileprivate var spanParser: SpanParser {
+        if let p = type.titleParser {
+            return p
+        }
+        return scope.spanParser
     }
 
-    public func addTitleAttribute(_ attribute: NodeAttribute) {
-        titleAttributes.append(attribute)
+    public func addNodeAttribute(_ attribute: NodeAttribute) {
+        nodeAttributes.append(attribute)
     }
 
     /// Create the `Node` for this element.
     public func createNode(start: Position, end: Cursor) -> Node {
         let node = Node(start: start, end: end, nodeType: type.nodeType,
-                           attributes: attributes, children: title + body)
+                           attributes: nodeAttributes,
+                           children: title + attributes + body)
         finish(node)
         return node
     }
@@ -112,6 +115,11 @@ let elementBodyParser = Parser<Parser<[Node]>> { input in
 let elementTitleParser = Parser<(Parser<()>) -> Parser<[Node]>> { input in
     let element = input.scope.element!
     return (element.titleParser, input)
+}
+
+let elementSpanParser = Parser<(Parser<()>) -> Parser<[Node]>> { input in
+    let element = input.scope.element!
+    return (element.spanParser, input)
 }
 
 

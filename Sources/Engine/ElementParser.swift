@@ -39,7 +39,7 @@ public func elementCreateMarkupParser(name: String) -> Parser<()> {
     }
 }
 
-private let attributesFollowedByColon = elementContent(attributesParser(literal(":")*>pure(())))
+private let attributesFollowedByColon = elementAttributes(attributesParser(literal(":")*>pure(())))
 
 /// Parser for the start of a markup element definition
 ///
@@ -56,10 +56,10 @@ public let elementStartMarkupParser = (identifier >>- elementCreateMarkupParser)
     attributesFollowedByColon <* optional(whitespace)
 
 /// Parser adding the specified attribute to the currently parsed element.
-public func elementAttribute(_ attr: NodeAttribute) -> Parser<()> {
+public func elementNodeAttribute(_ attr: NodeAttribute) -> Parser<()> {
     return Parser { input in
         let element = input.scope.element!
-        element.attributes.append(attr)
+        element.addNodeAttribute(attr)
         return ((), input)
     }
 }
@@ -73,9 +73,35 @@ public func elementTitle(_ p: Parser<[Node]>) -> Parser<()> {
         return ((), tail)
     }
 }
+/// Makes a parser store its result as the current element's title.
+public func elementAttributes(_ p: Parser<[Node]>) -> Parser<()> {
+    return Parser { input in
+        let element = input.scope.element!
+        let (content, tail) = try p.parse(input)
+        element.attributes += content
+        return ((), tail)
+    }
+}
+
 private let atEndOfLine = satisfying {$0.atEndOfLine}
+
+/// Parser which parses attributes within `{...}` braces.
+///
+/// The result is stored in the current element while returning an empty list.
+/// This way it can be used as part of the title parser, without making
+/// the attributes a part of the title node.
+private let bracedAttributes: Parser<[Node]> = satisfying {$0.atStartOfWord} *>
+    literal("{") *> elementAttributes(attributes) *> optional(whitespace) *> literal("}") *>
+    optional(whitespace) *> satisfying {$0.atEndOfLine} *> pure([])
+private let optionalAttributes = atEndOfLine <|> optional(whitespace) *> elementAttributes(bracedAttributes)
+private let titleWithOptionalAttributes = elementTitleParser <*> pure(optionalAttributes)
 private let titleNodeType = ElementNodeType(name: "title")
-private let titleNode = node(type: titleNodeType) <^> (elementTitleParser <*> pure(atEndOfLine))
+private let titleNode = node(type: titleNodeType) <^> titleWithOptionalAttributes
+
+/// Parser which parses an element title.
+///
+/// The title content is stored within the element.
+/// Optional attributes at the end of the line are also stored within the element.
 public let elementTitleLine = titleNode >>- elementTitle
 
 /// Makes a parser store its result in the current element's body.
@@ -94,9 +120,8 @@ public let elementBodyBlock = subBlock(
     endOfBlock <|> elementBody <* elementContent(expectEndOfBlock)
 )
 
-
 public func elementSpanBody(until endMarker: Parser<()>) -> Parser<()> {
-    return elementTitleParser <*> pure(endMarker) >>- elementTitle
+    return elementSpanParser <*> pure(endMarker) >>- elementContent
 }
 public func elementSpanBody(until endMarker: Parser<String>) -> Parser<()> {
     return elementSpanBody(until: endMarker *> pure(()))

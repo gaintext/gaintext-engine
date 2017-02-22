@@ -93,7 +93,7 @@ public let titledContent = lookahead(detectSectionStart()) >>- { underline in
     element(
         namedElementOrSection *> elementTitleLine *> endOfLine *>
         advanceLine *> // line with underline characters
-        elementAttribute(.text("underline", String(underline))) *>
+        elementNodeAttribute(.text("underline", String(underline))) *>
         (skipEmptyLines *> endOfBlock <|> content(underline: underline))
     )
 }

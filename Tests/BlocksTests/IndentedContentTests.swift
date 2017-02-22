@@ -81,7 +81,7 @@ class IndentedContentTests: XCTestCase {
         expect(cursor.atEndOfBlock) == true
     }
 
-    func testId() throws {
+    func testId1() throws {
         let doc = Document(source: "test #name:\n")
         doc.global.register(block: ElementType("test"))
         let p = elementWithIndentedContent
@@ -104,7 +104,30 @@ class IndentedContentTests: XCTestCase {
         expect(tail.atEndOfBlock) == true
     }
 
-    func testClass() throws {
+    func testId2() throws {
+        let doc = Document(source: "test: {#name}\n")
+        doc.global.register(block: ElementType("test"))
+        let p = elementWithIndentedContent
+
+        let (nodes, tail) = try parse(p, doc)
+        expect(nodes).to(haveCount(1))
+        let node = nodes[0]
+
+        expect(node.nodeType.name) == "test"
+        expect(node.children).to(haveCount(1))
+
+        let attr = node.children[0]
+        expect(attr.nodeType.name) == "attribute"
+        expect(attr.children).to(haveCount(2))
+        expect(attr.children[0].nodeType.name) == "attribute-key"
+        expect(attr.children[0].attributes) == [.text("name", "id")]
+        expect(attr.children[1].nodeType.name) == "attribute-value"
+        expect(attr.children[1].attributes) == [.text("value", "name")]
+
+        expect(tail.atEndOfBlock) == true
+    }
+
+    func testClass1() throws {
         let doc = Document(source: "test .name:\n")
         doc.global.register(block: ElementType("test"))
         let p = elementWithIndentedContent
@@ -127,7 +150,30 @@ class IndentedContentTests: XCTestCase {
         expect(tail.atEndOfBlock) == true
     }
 
-    func testCombination() throws {
+    func testClass2() throws {
+        let doc = Document(source: "test: {.name}\n")
+        doc.global.register(block: ElementType("test"))
+        let p = elementWithIndentedContent
+
+        let (nodes, tail) = try parse(p, doc)
+        expect(nodes).to(haveCount(1))
+        let node = nodes[0]
+
+        expect(node.nodeType.name) == "test"
+        expect(node.children).to(haveCount(1))
+
+        let attr = node.children[0]
+        expect(attr.nodeType.name) == "attribute"
+        expect(attr.children).to(haveCount(2))
+        expect(attr.children[0].nodeType.name) == "attribute-key"
+        expect(attr.children[0].attributes) == [.text("name", "class")]
+        expect(attr.children[1].nodeType.name) == "attribute-value"
+        expect(attr.children[1].attributes) == [.text("value", "name")]
+
+        expect(tail.atEndOfBlock) == true
+    }
+
+    func testCombination1() throws {
         let doc = Document(source: "test #name x=y: title text\n  content\n")
         doc.global.register(block: ElementType("test"))
         let p = elementWithIndentedContent
@@ -162,14 +208,92 @@ class IndentedContentTests: XCTestCase {
         expect(tail.atEndOfBlock) == true
     }
 
+    func testCombination2() throws {
+        let doc = Document(source: "test #name: title text {x=y}\n  content\n")
+        doc.global.register(block: ElementType("test"))
+        let p = elementWithIndentedContent
+
+        let (nodes, tail) = try parse(p, doc)
+        expect(nodes).to(haveCount(1))
+        let node = nodes[0]
+
+        expect(node.nodeType.name) == "test"
+        expect(node.children).to(haveCount(4))
+
+        let title = node.children[0]
+        expect(title.nodeType.name) == "title"
+        expect(title.children).to(haveCount(1))
+        expect(title.children[0].nodeType.name) == "text"
+        expect(title.children[0].sourceContent) == "title text"
+
+        let id = node.children[1]
+        expect(id.nodeType.name) == "attribute"
+        expect(id.children).to(haveCount(2))
+        expect(id.children[0].attributes) == [.text("name", "id")]
+        expect(id.children[1].attributes) == [.text("value", "name")]
+
+        let attr = node.children[2]
+        expect(attr.nodeType.name) == "attribute"
+        expect(attr.children).to(haveCount(2))
+        expect(attr.children[0].attributes) == [.text("name", "x")]
+        expect(attr.children[1].attributes) == [.text("value", "y")]
+
+        let content = node.children[3]
+        expect(content.nodeType.name) == "p"
+        expect(content.sourceContent) == "content"
+
+        expect(tail.atEndOfBlock) == true
+    }
+
+    func testCombination3() throws {
+        let doc = Document(source: "test: title text {#name x=y}\n  content\n")
+        doc.global.register(block: ElementType("test"))
+        let p = elementWithIndentedContent
+
+        let (nodes, tail) = try parse(p, doc)
+        expect(nodes).to(haveCount(1))
+        let node = nodes[0]
+
+        expect(node.nodeType.name) == "test"
+        expect(node.children).to(haveCount(4))
+
+        let title = node.children[0]
+        expect(title.nodeType.name) == "title"
+        expect(title.children).to(haveCount(1))
+        expect(title.children[0].nodeType.name) == "text"
+        expect(title.children[0].sourceContent) == "title text"
+
+        let id = node.children[1]
+        expect(id.nodeType.name) == "attribute"
+        expect(id.children).to(haveCount(2))
+        expect(id.children[0].attributes) == [.text("name", "id")]
+        expect(id.children[1].attributes) == [.text("value", "name")]
+
+        let attr = node.children[2]
+        expect(attr.nodeType.name) == "attribute"
+        expect(attr.children).to(haveCount(2))
+        expect(attr.children[0].attributes) == [.text("name", "x")]
+        expect(attr.children[1].attributes) == [.text("value", "y")]
+
+        let content = node.children[3]
+        expect(content.nodeType.name) == "p"
+        expect(content.sourceContent) == "content"
+
+        expect(tail.atEndOfBlock) == true
+    }
+
     static var allTests : [(String, (IndentedContentTests) -> () throws -> Void)] {
         return [
             ("testSimple", testSimple),
             ("testTitle", testTitle),
             ("testContent", testContent),
-            ("testId", testId),
-            ("testClass", testClass),
-            ("testCombination", testCombination),
+            ("testId1", testId1),
+            ("testId2", testId2),
+            ("testClass1", testClass1),
+            ("testClass2", testClass2),
+            ("testCombination1", testCombination1),
+            ("testCombination2", testCombination2),
+            ("testCombination3", testCombination3),
         ]
     }
 }
