@@ -8,22 +8,19 @@
 // (at your option) any later version.
 //
 
-import Foundation
 import Engine
-import GainText
 import HTMLKit
 
-func main() throws {
-    let name = CommandLine.arguments[1]
-    let text = try NSString(contentsOfFile: name, encoding: String.Encoding.utf8.rawValue)
+extension Document {
+    public func parseHTML() -> HTMLDocument {
 
-    let doc = Document(source: String(text))
+        let nodes = parse()
 
-    print(doc.parseHTML().innerHTML)
-}
+        let html = HTMLDocument(string: "<!DOCTYPE html><meta charset=\"utf-8\">")
+        for node in nodes {
+            node.generate(parent: html.body!)
+        }
 
-do {
-    try main()
-} catch let e {
-    print("error:", e)
+        return html
+    }
 }

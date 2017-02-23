@@ -9,6 +9,7 @@
 //
 
 import Runes
+import HTMLKit
 
 
 /// Create a node parser from a String parser
@@ -57,11 +58,19 @@ public func node(type: NodeType, keepEmpty: Bool = false) -> (Parser<[Node]>) ->
 
 private class TextNodeType: NodeType {
     let name = "text"
+    func generate(_ node: Node, parent: HTMLElement) {
+        parent.append(HTMLText(data: node.sourceContent))
+    }
 }
 private let textNodeType = TextNodeType()
 
 private class CodeNodeType: NodeType {
     let name = "code-text"
+    func generate(_ node: Node, parent: HTMLElement) {
+        let code = HTMLElement(tagName: "code")
+        code.append(HTMLText(data: node.sourceContent))
+        parent.append(code)
+    }
 }
 private let codeNodeType = CodeNodeType()
 

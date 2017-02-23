@@ -30,11 +30,12 @@ let package = Package(
         Target(name: "EngineTests", dependencies: ["GainText"]),
 
         Target(name: "BlocksTests", dependencies: ["GainText"]),
-        Target(name: "MarkupTests", dependencies: ["GainText"])
+        Target(name: "MarkupTests", dependencies: ["GainText"]),
 //        Target(name: "ElementsTests", dependencies: ["EngineTests", "GainText"]),
     ],
     dependencies: [
         .Package(url: "https://github.com/Quick/Nimble", majorVersion: 6),
-        .Package(url: "https://github.com/thoughtbot/Runes", majorVersion: 4)
+        .Package(url: "https://github.com/thoughtbot/Runes", majorVersion: 4),
+        .Package(url: "https://github.com/iabudiab/HTMLKit", majorVersion: 2),
     ]
 )

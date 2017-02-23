@@ -53,6 +53,7 @@ private func registerElements(global scope: Scope) {
         scope.register(markup: element)
     }
     scope.register(markup: "em", alias: "span:*")
+    scope.register(markup: "em", alias: "span:_")
     scope.register(markup: "code", alias: "span:`")
     scope.register(markup: "math", alias: "span:$")
     scope.register(markup: "raw", alias: "span:~")

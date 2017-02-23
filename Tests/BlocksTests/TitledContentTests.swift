@@ -79,7 +79,7 @@ class TitledContentTests: XCTestCase {
         let title = node.children[0]
         expect(title.document) == doc
         expect(title.sourceRange) == "1:1..1:3"
-        expect(title.nodeType.name) == "title"
+        expect(title.nodeType.name) == "gaintext-title"
 
         expect(cursor.atEndOfBlock) == true
     }
@@ -100,7 +100,7 @@ class TitledContentTests: XCTestCase {
         let title = node.children[0]
         expect(title.document) == doc
         expect(title.sourceRange) == "1:1..1:3"
-        expect(title.nodeType.name) == "title"
+        expect(title.nodeType.name) == "gaintext-title"
 
         expect(cursor.atEndOfBlock) == true
     }
@@ -122,7 +122,7 @@ class TitledContentTests: XCTestCase {
         let title = node.children[0]
         expect(title.document) == doc
         expect(title.sourceContent) == "abc"
-        expect(title.nodeType.name) == "title"
+        expect(title.nodeType.name) == "gaintext-title"
 
         expect(cursor.atEndOfBlock) == true
     }
@@ -143,7 +143,7 @@ class TitledContentTests: XCTestCase {
         let title = node.children[0]
         expect(title.document) == doc
         expect(title.sourceRange) == "1:1..1:3"
-        expect(title.nodeType.name) == "title"
+        expect(title.nodeType.name) == "gaintext-title"
 
         let para1 = node.children[1]
         expect(para1.document) == doc
@@ -171,18 +171,18 @@ class TitledContentTests: XCTestCase {
         expect(node1.nodeType.name) == "section"
         expect(node1.attributes) == [NodeAttribute.text("underline", "=")]
         expect(node1.children.count) == 2
-        expect(node1.children[0].nodeType.name) == "title"
+        expect(node1.children[0].nodeType.name) == "gaintext-title"
         let node11 = node1.children[1]
         expect(node11.nodeType.name) == "section"
         expect(node11.attributes) == [NodeAttribute.text("underline", "-")]
         expect(node11.children.count) == 1
-        expect(node11.children[0].nodeType.name) == "title"
+        expect(node11.children[0].nodeType.name) == "gaintext-title"
 
         let node2 = nodes[1]
         expect(node2.nodeType.name) == "section"
         expect(node2.attributes) == [NodeAttribute.text("underline", "=")]
         expect(node2.children.count) == 1
-        expect(node2.children[0].nodeType.name) == "title"
+        expect(node2.children[0].nodeType.name) == "gaintext-title"
 
         expect(cursor.atEndOfBlock) == true
     }
@@ -199,7 +199,7 @@ class TitledContentTests: XCTestCase {
         expect(node.children).to(haveCount(2))
 
         let title = node.children[0]
-        expect(title.nodeType.name) == "title"
+        expect(title.nodeType.name) == "gaintext-title"
         expect(title.sourceContent) == "abc"
 
         let attr = node.children[1]
@@ -225,7 +225,7 @@ class TitledContentTests: XCTestCase {
         expect(node.children).to(haveCount(2))
 
         let title = node.children[0]
-        expect(title.nodeType.name) == "title"
+        expect(title.nodeType.name) == "gaintext-title"
         expect(title.sourceContent) == "abc"
 
         let attr = node.children[1]
@@ -251,7 +251,7 @@ class TitledContentTests: XCTestCase {
         expect(node.children).to(haveCount(4))
 
         let title = node.children[0]
-        expect(title.nodeType.name) == "title"
+        expect(title.nodeType.name) == "gaintext-title"
         expect(title.sourceContent) == "title text"
 
         let id = node.children[1]

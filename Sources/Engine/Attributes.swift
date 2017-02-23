@@ -9,6 +9,7 @@
 //
 
 import Runes
+import HTMLKit
 
 
 private var attributeKV: Parser<[Node]> {
@@ -36,9 +37,40 @@ public var attributes: Parser<[Node]> {
     return list(attribute, separator: whitespace)
 }
 
-private let attrNodeType = ElementNodeType(name: "attribute")
-private let attrKeyType = ElementNodeType(name: "attribute-key")
-private let attrValueType = ElementNodeType(name: "attribute-value")
+/// Special type for attribute nodes.
+///
+/// When generating HTML no new node is created but
+/// the attribute is directly stored in the parent element.
+class AttributeNodeType: NodeType {
+    let name = "attribute"
+    func generate(_ node: Node, parent element: HTMLElement) {
+        assert(node.children.count == 2)
+        guard case let .text(_, attr) = node.children[0].attributes[0] else {
+            assert(false)
+        }
+        guard case var .text(_, value) = node.children[1].attributes[0] else {
+            assert(false)
+        }
+
+        if attr == "class", let orig = element[attr] {
+            value = orig + " " + value
+        }
+        element[attr] = value
+    }
+}
+
+/// Special type for keys and values of attributes.
+class AttributeFragmentType: NodeType {
+    var name: String
+    init(name: String) { self.name = name }
+    func generate(_ node: Node, parent: HTMLElement) {
+        // nothing to do, everything is handled by AttributeNodeType
+    }
+}
+
+private let attrNodeType = AttributeNodeType()
+private let attrKeyType = AttributeFragmentType(name: "attribute-key")
+private let attrValueType = AttributeFragmentType(name: "attribute-value")
 
 
 // TBD: endMarker can be swallowed by attribute: {a=b} tries to assign b} to a

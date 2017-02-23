@@ -95,7 +95,7 @@ private let bracedAttributes: Parser<[Node]> = satisfying {$0.atStartOfWord} *>
     optional(whitespace) *> satisfying {$0.atEndOfLine} *> pure([])
 private let optionalAttributes = atEndOfLine <|> optional(whitespace) *> elementAttributes(bracedAttributes)
 private let titleWithOptionalAttributes = elementTitleParser <*> pure(optionalAttributes)
-private let titleNodeType = ElementNodeType(name: "title")
+private let titleNodeType = ElementNodeType(name: "gaintext-title")
 private let titleNode = node(type: titleNodeType) <^> titleWithOptionalAttributes
 
 /// Parser which parses an element title.

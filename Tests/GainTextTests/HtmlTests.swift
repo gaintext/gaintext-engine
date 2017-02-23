@@ -10,12 +10,13 @@
 
 import Engine
 import GainText
+import HTMLKit
 
 import XCTest
 import Nimble
 
 
-class ExampleTests: XCTestCase {
+class HtmlTests: XCTestCase {
 
     func testWritingText() throws {
         let doc = Document(source:
@@ -28,16 +29,10 @@ class ExampleTests: XCTestCase {
             "   - allows to write beautiful source documents\n" +
             "   - also readable by non-techies\n" +
             " * TBD\n")
-        let nodes = doc.parse()
+        let html = doc.parseHTML()
 
-        expect(nodes).to(haveCount(1))
-
-        expect(nodes[0].nodeType.name) == "section"
-
-        expect(nodes[0].children).to(haveCount(3))
-        expect(nodes[0].children[0].nodeType.name) == "gaintext-title"
-        expect(nodes[0].children[1].nodeType.name) == "p"
-        //TBD expect(nodes[0].children[2].type.name) == "ul"
+        expect(html.querySelector("p")?.innerHTML)
+            == "Text with <em>embedded</em> <code>markup</code>."
     }
 
     func testStructuredElements() throws {
@@ -86,7 +81,7 @@ class ExampleTests: XCTestCase {
 
     }
 
-    static var allTests : [(String, (ExampleTests) -> () throws -> Void)] {
+    static var allTests : [(String, (HtmlTests) -> () throws -> Void)] {
         return [
             ("testWritingText", testWritingText),
             ("testStructuredElements", testStructuredElements),

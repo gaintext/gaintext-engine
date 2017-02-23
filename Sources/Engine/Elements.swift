@@ -8,6 +8,8 @@
 // (at your option) any later version.
 //
 
+import HTMLKit
+
 
 /// NodeType for Elements
 open class ElementNodeType: NodeType {
@@ -20,6 +22,17 @@ open class ElementNodeType: NodeType {
     /// Prepare a newly created `Node`.
     open func prepare(_ node: Node, _ scope: Scope) {
         // allow to override it
+    }
+}
+
+extension ElementNodeType {
+    public func generate(_ node: Node, parent: HTMLElement) {
+        let element = HTMLElement(tagName: name)
+        parent.append(element)
+
+        for child in node.children {
+            child.nodeType.generate(child, parent: element)
+        }
     }
 }
 

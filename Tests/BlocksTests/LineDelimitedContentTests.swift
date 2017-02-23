@@ -81,7 +81,7 @@ class LineDelimitedTests: XCTestCase {
         expect(node.children).to(haveCount(5))
 
         let title = node.children[0]
-        expect(title.nodeType.name) == "title"
+        expect(title.nodeType.name) == "gaintext-title"
         expect(title.sourceContent) == "title text"
 
         let id = node.children[1]
@@ -116,7 +116,7 @@ class LineDelimitedTests: XCTestCase {
         expect(node.children).to(haveCount(3))
 
         let title = node.children[0]
-        expect(title.nodeType.name) == "title"
+        expect(title.nodeType.name) == "gaintext-title"
         expect(title.sourceContent) == "title text"
 
         expect(node.children[1].nodeType.name) == "code-text"
@@ -166,7 +166,7 @@ class LineDelimitedTests: XCTestCase {
         expect(node.children).to(haveCount(5))
 
         let title = node.children[0]
-        expect(title.nodeType.name) == "title"
+        expect(title.nodeType.name) == "gaintext-title"
         expect(title.sourceContent) == "title text"
 
         let id = node.children[1]

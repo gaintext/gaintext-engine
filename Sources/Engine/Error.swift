@@ -9,6 +9,7 @@
 //
 
 import Runes
+import HTMLKit
 
 
 // we have two types of errors:
@@ -31,8 +32,18 @@ public class ErrorNodeType: NodeType {
         self.message = message
     }
 
+    func describe(_ node: Node) -> String {
+        return "error: \(message): \(node)"
+    }
+
     func prepare(_ node: Node) {
-        print("error: \(message): \(node)")
+        print(describe(node))
+    }
+
+    public func generate(_ node: Node, parent: HTMLElement) {
+        let error = HTMLElement(tagName: "parse-error")
+        error.append(HTMLText(data: describe(node)))
+        parent.append(error)
     }
 
     let message: String
