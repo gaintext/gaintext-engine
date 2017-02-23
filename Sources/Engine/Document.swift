@@ -153,7 +153,6 @@ extension Node {
 public protocol NodeType: class, CustomStringConvertible {
     var name: String { get }
     func prepare(_ node: Node, _ scope: Scope)
-    func constructAST(_ node: Node) -> ASTNode
 }
 
 extension NodeType {
@@ -256,51 +255,5 @@ extension SourceRange {
 extension SourceRange: Equatable {
     public static func ==(lhs: SourceRange, rhs: SourceRange) -> Bool {
         return lhs.start == rhs.start && lhs.end == rhs.end
-    }
-}
-
-
-// ASTNodes are created from Nodes and store the final AST
-// They can store any content and are not restricted to reference
-// the input document
-public enum ASTNode {
-    case element(Tag, attributes: [NodeAttribute], children: [ASTNode])
-    case text(String)
-    case comment(String)
-    case pi(String)
-}
-
-public class Tag: ObjectIdentity {
-    let name: String
-    let isBlock: Bool
-
-    public init(_ name: String, isBlock: Bool) {
-        self.name = name
-        self.isBlock = isBlock
-    }
-}
-
-extension ASTNode {
-    static var tags: [String: Tag] = [:]
-    static func tag(name: String, attributes: [NodeAttribute] = [], children: [ASTNode] = []) -> ASTNode? {
-        guard let tag = ASTNode.tags[name] else { return nil }
-        return .element(tag, attributes: attributes, children: children)
-    }
-}
-
-extension ASTNode: Equatable {
-    public static func ==(lhs: ASTNode, rhs: ASTNode) -> Bool {
-        switch (lhs, rhs) {
-        case (.element(let tag1, let attr1, let children1), .element(let tag2, let attr2, let children2)):
-            return tag1 == tag2 && attr1 == attr2 && children1 == children2
-        case (.text(let text1), .text(let text2)):
-            return text1 == text2
-        case (.comment(let c1), .comment(let c2)):
-            return c1 == c2
-        case (.pi(let s1), .pi(let s2)):
-            return s1 == s2
-        default:
-            return false
-        }
     }
 }

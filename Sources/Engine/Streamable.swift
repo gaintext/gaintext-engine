@@ -93,29 +93,3 @@ extension Node: HTMLStreamable {
         target.write("</\(nodeType.name)>\n")
     }
 }
-
-extension ASTNode: HTMLStreamable {
-    public func write<Target : TextOutputStream>(to target: inout Target, indent level: Int) {
-        switch self {
-        case .element(let tag, let attributes, let children):
-            _write(indentation: level, to: &target)
-            target.write("<\(tag.name)")
-            for attribute in attributes {
-                attribute.write(to: &target)
-            }
-            target.write(">\n")
-            for child in children {
-                child.write(to: &target, indent: level + 1)
-            }
-            _write(indentation: level, to: &target)
-            target.write("</\(tag.name)>\n")
-        case .text(let text):
-            _write(escaped: text, to: &target)
-        case .comment(let text):
-            // TBD: escape --> ?
-            target.write("<!-- $\(text) -->")
-        case .pi(let text):
-            target.write("<!$\(text)!>")
-        }
-    }
-}

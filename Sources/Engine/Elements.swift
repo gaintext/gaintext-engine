@@ -23,17 +23,6 @@ open class ElementNodeType: NodeType {
     }
 }
 
-extension ElementNodeType {
-    public func constructAST(_ node: Node) -> ASTNode {
-        assert(ObjectIdentifier(node.nodeType) == ObjectIdentifier(self))
-        let children = node.children.map { node in
-            node.nodeType.constructAST(node)
-        }
-        return ASTNode.tag(name: name, attributes: node.attributes,
-                           children: children)!
-    }
-}
-
 extension ElementNodeType: CustomStringConvertible {
     public var description: String { return "element \(name)" }
 }

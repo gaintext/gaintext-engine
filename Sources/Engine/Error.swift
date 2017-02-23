@@ -34,10 +34,6 @@ public class ErrorNodeType: NodeType {
     func prepare(_ node: Node) {
         print("error: \(message): \(node)")
     }
-    // TBD
-    public func constructAST(_ node: Node) -> ASTNode {
-        return .comment("error: \(message)")
-    }
 
     let message: String
 }

@@ -57,17 +57,11 @@ public func node(type: NodeType, keepEmpty: Bool = false) -> (Parser<[Node]>) ->
 
 private class TextNodeType: NodeType {
     let name = "text"
-    func constructAST(_ node: Node) -> ASTNode {
-        return .text(node.sourceContent)
-    }
 }
 private let textNodeType = TextNodeType()
 
 private class CodeNodeType: NodeType {
     let name = "code-text"
-    func constructAST(_ node: Node) -> ASTNode {
-        return .text(node.sourceContent)
-    }
 }
 private let codeNodeType = CodeNodeType()
 
