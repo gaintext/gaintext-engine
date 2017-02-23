@@ -277,3 +277,44 @@ class CharacterParserTests: XCTestCase {
         ]
     }
 }
+
+class IdentifierTests: XCTestCase {
+
+    func testIdentifier1() throws {
+        let doc = Document(source: "identifier")
+        let p = identifier
+
+        let (result, cursor) = try p.parse(doc.start())
+
+        expect(result) == "identifier"
+        expect(cursor.atEndOfLine).to(beTrue())
+    }
+
+    func testIdentifier2() throws {
+        let doc = Document(source: "id_2 next")
+        let p = identifier
+
+        let (result, cursor) = try p.parse(doc.start())
+
+        expect(result) == "id_2"
+        expect(cursor.position.left) == "1:4"
+    }
+
+    func testIdentifier3() throws {
+        let doc = Document(source: "_id3>")
+        let p = identifier
+
+        let (result, cursor) = try p.parse(doc.start())
+
+        expect(result) == "_id3"
+        expect(cursor.position.left) == "1:4"
+    }
+
+    static var allTests : [(String, (IdentifierTests) -> () throws -> Void)] {
+        return [
+            ("testIdentifier1", testIdentifier1),
+            ("testIdentifier2", testIdentifier2),
+            ("testIdentifier3", testIdentifier3),
+        ]
+    }
+}

@@ -13,40 +13,28 @@ import Blocks
 import Markup
 import Runes
 
-private var blockParser: NodeParser {
+private let blockParser = list(
+    titledContent <|> elementBlockParser <|> lineDelimitedContent <|> paragraph,
+    separator: skipEmptyLines
+)
 
-    let section = TitledContent()
-    let elementBlock = ElementBlockParser()
-    let lineDelimited = LineDelimitedContent()
-    let para = Paragraph()
 
-    return ListParser(
-        DisjunctiveParser(list: [
-            section,
-            elementBlock,
-            lineDelimited,
-            para
-        ]),
-        skip: EmptyLines()
-    )
-}
-
-private let spanParser = TextWithMarkupParser(markup: CachedParser(WrapParser(
+private let spanParser = textWithMarkupParser(markup: cached(
     escaped <|> spanWithBrackets <|> spanWithDelimiters
-)))
+))
 
 
 private func registerElements(global scope: Scope) {
     let blockElements = [
 //        ImportElementType(),
 //        DefinitionElementType(),
-        ElementType("p", body: ListParser(LineParser())),
+        ElementType("p", body: list(lineParser)),
         ElementType("section"),
         ElementType("example"),
         ElementType("math"),
         ElementType("table"),
         ElementType("TBD"),
-        ElementType("code", body: ListParser(CodeLineParser()))
+        ElementType("code", body: list(codeLine))
     ]
     for element in blockElements {
         scope.register(block: element)
@@ -58,8 +46,8 @@ private func registerElements(global scope: Scope) {
         ElementType("TBD"),
         ElementType("em"),
         ElementType("math"),
-        ElementType("code", title: RawTextParser()),
-        ElementType("raw", title: RawTextParser())
+        ElementType("code", title: rawTextParser),
+        ElementType("raw", title: rawTextParser)
     ]
     for element in markupElements {
         scope.register(markup: element)

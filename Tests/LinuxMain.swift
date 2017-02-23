@@ -19,32 +19,44 @@ import XCTest
 XCTMain([
 
      // EngineTests
-     testCase(LiteralCharacterParserTests.allTests),
-     testCase(LiteralStringParserTests.allTests),
-     testCase(CollectWhileParserTests.allTests),
-     testCase(CollectUntilParserTests.allTests),
-     testCase(CharacterParserTests.allTests),
-     testCase(MappedParserTests.allTests),
-     testCase(LookaheadParserTests.allTests),
-     testCase(LazyParserTests.allTests),
-     testCase(SequenceParserTests.allTests),
-     testCase(DisjunctiveParserTests.allTests),
+     testCase(AttributesTests.allTests),
      testCase(CachedParserTests.allTests),
+     testCase(CharacterParserTests.allTests),
+     testCase(CollectUntilParserTests.allTests),
+     testCase(CollectWhileParserTests.allTests),
+     testCase(CombinatorLazyTests.allTests),
+     testCase(CombinatorListTests.allTests),
+     testCase(CombinatorLookaheadTests.allTests),
+     testCase(CombinatorMapTests.allTests),
+     testCase(CombinatorNotTests.allTests),
+     testCase(CombinatorOptionalTests.allTests),
      testCase(CursorTests.allTests),
      testCase(DocumentTests.allTests),
      testCase(IndentParserTests.allTests),
-     testCase(LiteralParserTests.allTests),
-     testCase(NewlineParserTests.allTests),
-     testCase(ParagraphParserTests.allTests),
+     testCase(LiteralCharacterParserTests.allTests),
+     testCase(LiteralStringParserTests.allTests),
+     testCase(LiteralTests.allTests),
+     testCase(LookaheadParserTests.allTests),
+     testCase(OperatorAddTests.allTests),
+     testCase(OperatorApplyTests.allTests),
+     testCase(OperatorComposeFuncTests.allTests),
+     testCase(OperatorLeftTests.allTests),
+     testCase(OperatorMapParserTests.allTests),
+     testCase(OperatorMapTests.allTests),
+     testCase(OperatorOrTests.allTests),
+     testCase(OperatorRightTests.allTests),
 
-     // BlockTests
-     testCase(SectionParserDetectionTests.allTests),
-     testCase(SectionParserTests.allTests),
+     // BlocksTests
+     testCase(DetectSectionStartTests.allTests),
+     testCase(IndentedContentTests.allTests),
      testCase(LineDelimitedTests.allTests),
+     testCase(ParagraphTests.allTests),
+     testCase(TitledContentTests.allTests),
 
      // MarkupTests
+     testCase(EscapedTests.allTests),
      testCase(SpanWithBracketsTests.allTests),
-     testCase(SpanWithDelimitersTests.allTests)
+     testCase(SpanWithDelimitersTests.allTests),
 
      // GainTextTests
      testCase(ExampleTests.allTests)

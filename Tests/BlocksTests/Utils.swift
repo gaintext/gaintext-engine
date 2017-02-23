@@ -9,23 +9,23 @@
 //
 
 @testable import Engine
-import XCTest
+import Nimble
 
 /// reports any exceptions which are thrown
-func report<T>(_ f: @autoclosure () throws -> T, file: StaticString = #file, line: UInt = #line) rethrows -> T {
+func report<T>(_ f: @autoclosure () throws -> T, file: FileString = #file, line: UInt = #line) rethrows -> T {
     do {
         return try f()
     } catch(let e) {
-        XCTFail("unexpected error: \(e)", file: file, line: line)
+        fail("unexpected error: \(e)", file: file, line: line)
         throw e
     }
 }
 
-func parse(_ r: NodeParser, _ cursor: Cursor, file: StaticString = #file, line: UInt = #line) throws -> ([Node], Cursor) {
-    return try report(try r.parse(cursor), file: file, line: line)
+func parse<Result>(_ p: Parser<Result>, _ input: Cursor, file: FileString = #file, line: UInt = #line) throws -> (Result, Cursor) {
+    return try report(try p.parse(input), file: file, line: line)
 }
-func parse(_ r: NodeParser, _ doc: Document, file: StaticString = #file, line: UInt = #line) throws -> ([Node], Cursor) {
-    return try report(try r.parse(doc.start()), file: file, line: line)
+func parse<Result>(_ p: Parser<Result>, _ doc: Document, file: FileString = #file, line: UInt = #line) throws -> (Result, Cursor) {
+    return try report(try p.parse(doc.start()), file: file, line: line)
 }
 
 

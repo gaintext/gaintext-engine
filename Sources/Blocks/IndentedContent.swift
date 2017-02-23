@@ -9,31 +9,28 @@
 //
 
 import Engine
+import Runes
 
-public struct ElementWithIndentedContent: ElementParser {
 
-    public func parse(_ cursor: Cursor) throws -> ([Node], Cursor) {
-        let start = cursor.position
+/// Parser for one element with indented content.
+///
+/// Consumes the title line and any following indented lines.
+/// The indented part will be parsed as a new block containing the
+/// content of the new element.
+public let elementWithIndentedContent = element(
+    elementStartBlockParser *> elementTitleLine *>
+    endOfLine *>
+    optional(indentationParser, otherwise: []) >>- elementBodyBlock
+)
 
-        guard let (element, newCursor) = detectBlockElementStart(cursor) else {
-            throw ParserError.notFound(position: start)
-        }
-        var cursor = newCursor
-        cursor.skipWhitespace()
-        if !cursor.atEndOfLine {
-             element.parseTitle(cursor: cursor)
-        }
-        try cursor.advanceLine()
+/// Parser producing an error node spanning the whole line.
+private let errorNoElement = errorLine(errorType: ErrorNodeType("no element"))
 
-        let indented = indentationParser()
-        do {
-            let (block, newCursor2) = try indented.parse(cursor)
-            element.parseBody(block: block, parent: cursor)
-            cursor = newCursor2
-        } catch {}
-
-        let node = element.createNode(start: start, end: cursor)
-
-        return ([node], cursor)
-    }
-}
+/// Parser for a block of adjacent elements.
+/// An error is generated for any lines with unrecognized elements.
+public let elementBlockParser =
+    list(first: elementWithIndentedContent,
+         following: satisfying {!$0.atEndOfBlock && !$0.atWhitespaceOnlyLine} *>
+            (elementWithIndentedContent <|> errorNoElement))
+    <*
+    skipEmptyLines

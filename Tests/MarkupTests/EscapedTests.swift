@@ -20,7 +20,7 @@ class EscapedTests: XCTestCase {
 
     func testRawElement() throws {
         let doc = Document(source: "\\[raw:]\n")
-        let p = LineParser()
+        let p = lineParser
 
         let (nodes, cursor) = try parse(p, doc)
         expect(nodes).to(haveCount(2))
@@ -41,7 +41,7 @@ class EscapedTests: XCTestCase {
 
     func testEOL() throws {
         let doc = Document(source: "\\\n")
-        let p = LineParser()
+        let p = lineParser
 
         let (nodes, cursor) = try parse(p, doc)
         expect(nodes).to(haveCount(1))

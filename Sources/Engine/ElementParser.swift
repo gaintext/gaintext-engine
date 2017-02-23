@@ -11,8 +11,6 @@
 import Runes
 
 
-private let elementStartNameParser = identifier <* literal(":") <* optional(whitespace)
-
 public func elementCreateBlockParser(name: String) -> Parser<()> {
     return Parser { input in
         let scope = input.scope
@@ -26,7 +24,6 @@ public func elementCreateBlockParser(name: String) -> Parser<()> {
         return ((), input)
     }
 }
-public let elementStartBlockParser = elementStartNameParser >>- elementCreateBlockParser
 
 public func elementCreateMarkupParser(name: String) -> Parser<()> {
     return Parser { input in
@@ -41,7 +38,31 @@ public func elementCreateMarkupParser(name: String) -> Parser<()> {
         return ((), input)
     }
 }
-public let elementStartMarkupParser = elementStartNameParser >>- elementCreateMarkupParser
+
+private let attributesFollowedByColon = elementAttributes(attributesParser(literal(":")*>pure(())))
+
+/// Parser for the start of a markup element definition
+///
+/// Consumes the element name, optional attributes and the colon (`:`).
+/// Creates a corresponding element in the current scope.
+public let elementStartBlockParser = (identifier >>- elementCreateBlockParser) *>
+    attributesFollowedByColon <* optional(whitespace)
+
+/// Parser for the start of a markup element definition
+///
+/// Consumes the element name, optional attributes and the colon (`:`).
+/// Creates a corresponding element in the current scope.
+public let elementStartMarkupParser = (identifier >>- elementCreateMarkupParser) *>
+    attributesFollowedByColon <* optional(whitespace)
+
+/// Parser adding the specified attribute to the currently parsed element.
+public func elementNodeAttribute(_ attr: NodeAttribute) -> Parser<()> {
+    return Parser { input in
+        let element = input.scope.element!
+        element.addNodeAttribute(attr)
+        return ((), input)
+    }
+}
 
 /// Makes a parser store its result as the current element's title.
 public func elementTitle(_ p: Parser<[Node]>) -> Parser<()> {
@@ -52,6 +73,36 @@ public func elementTitle(_ p: Parser<[Node]>) -> Parser<()> {
         return ((), tail)
     }
 }
+/// Makes a parser store its result as the current element's title.
+public func elementAttributes(_ p: Parser<[Node]>) -> Parser<()> {
+    return Parser { input in
+        let element = input.scope.element!
+        let (content, tail) = try p.parse(input)
+        element.attributes += content
+        return ((), tail)
+    }
+}
+
+private let atEndOfLine = satisfying {$0.atEndOfLine}
+
+/// Parser which parses attributes within `{...}` braces.
+///
+/// The result is stored in the current element while returning an empty list.
+/// This way it can be used as part of the title parser, without making
+/// the attributes a part of the title node.
+private let bracedAttributes: Parser<[Node]> = satisfying {$0.atStartOfWord} *>
+    literal("{") *> elementAttributes(attributes) *> optional(whitespace) *> literal("}") *>
+    optional(whitespace) *> satisfying {$0.atEndOfLine} *> pure([])
+private let optionalAttributes = atEndOfLine <|> optional(whitespace) *> elementAttributes(bracedAttributes)
+private let titleWithOptionalAttributes = elementTitleParser <*> pure(optionalAttributes)
+private let titleNodeType = ElementNodeType(name: "title")
+private let titleNode = node(type: titleNodeType) <^> titleWithOptionalAttributes
+
+/// Parser which parses an element title.
+///
+/// The title content is stored within the element.
+/// Optional attributes at the end of the line are also stored within the element.
+public let elementTitleLine = titleNode >>- elementTitle
 
 /// Makes a parser store its result in the current element's body.
 public func elementContent(_ p: Parser<[Node]>) -> Parser<()> {
@@ -65,11 +116,29 @@ public func elementContent(_ p: Parser<[Node]>) -> Parser<()> {
 
 public let elementBody = elementBodyParser >>- elementContent
 
+public let elementBodyBlock = subBlock(
+    endOfBlock <|> elementBody <* elementContent(expectEndOfBlock)
+)
+
 public func elementSpanBody(until endMarker: Parser<()>) -> Parser<()> {
-    return elementTitleParser <*> pure(endMarker) >>- elementTitle
+    return elementSpanParser <*> pure(endMarker) >>- elementContent
 }
 public func elementSpanBody(until endMarker: Parser<String>) -> Parser<()> {
     return elementSpanBody(until: endMarker *> pure(()))
+}
+
+/// Apply a parser to some sub-block.
+public func subBlock<Result>(_ p: Parser<Result>) -> ([Line]) -> Parser<Result> {
+    return { lines in
+        Parser<Result> { outside in
+            let element = outside.scope.element!
+            let inside = element.childCursor(block: lines, parent: outside)
+            let (result, tail) = try p.parse(inside)
+            // content parser has to consume the complete block
+            assert(tail.atEndOfBlock)
+            return (result, outside)
+        }
+    }
 }
 
 /// Create a node from the current element.
@@ -94,9 +163,10 @@ func elementNodeParser(_ p: Parser<()>) -> Parser<[Node]> {
 /// Executes a parser in a separate child scope
 func newScopeParser<Result>(_ p: Parser<Result>) -> Parser<Result> {
     return Parser { input in
+        let scope = input.scope
         var cursor = input
-        let scope = cursor.scope
         cursor.scope = Scope(parent: scope)
+        cursor.scope.element = nil
         var (result, tail) = try p.parse(cursor)
         tail.scope = scope
         return (result, tail)
@@ -106,65 +176,3 @@ func newScopeParser<Result>(_ p: Parser<Result>) -> Parser<Result> {
 public func element(_ p: Parser<()>) -> Parser<[Node]> {
     return newScopeParser(elementNodeParser(p))
 }
-
-
-public protocol ElementParser: NodeParser {}
-
-extension ElementParser {
-
-    public func parseSpanBody(element: Element, cursor: Cursor, until endMarker: Parser<()>) throws -> Cursor {
-        var cursor = cursor
-        let oldScope = cursor.scope
-        cursor.scope = element.childScope()
-
-        var next = try element.parseSpan(cursor: cursor, until: endMarker)
-
-        next.scope = oldScope
-        return next
-    }
-}
-
-extension ElementParser {
-
-    func detectElementStartName(_ cursor: Cursor) -> (String, Cursor)? {
-        var cursor = cursor
-        let start = cursor.position
-
-        while cursor.atAlphaNumeric {
-            try! cursor.advance()
-        }
-        guard cursor.position.index != start.index else {
-            return nil
-        }
-        let name = cursor.head(from: start)
-
-        guard cursor.at(oneOf: ":") else {
-            return nil
-        }
-        try! cursor.advance()
-        cursor.skipWhitespace()
-        return (name, cursor)
-    }
-
-    public func detectBlockElementStart(_ cursor: Cursor) -> (Element, Cursor)? {
-        guard let (name, cursor) = detectElementStartName(cursor) else {
-            return nil
-        }
-        guard let element = cursor.scope.block(name: name) else {
-            return nil
-        }
-
-        return (element, cursor)
-    }
-    public func detectMarkupElementStart(_ cursor: Cursor) -> (Element, Cursor)? {
-        guard let (name, cursor) = detectElementStartName(cursor) else {
-            return nil
-        }
-        guard let element = cursor.scope.markup(name: name) else {
-            return nil
-        }
-
-        return (element, cursor)
-    }
-}
-

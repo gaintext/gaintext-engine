@@ -48,9 +48,9 @@ open class Element {
     let type: ElementType
     public let scope: Scope
     public var title: [Node] = []
+    public var attributes: [Node] = []
     public var body: [Node] = []
-    var attributes: [NodeAttribute] = []
-    var titleAttributes: [NodeAttribute] = []
+    private var nodeAttributes: [NodeAttribute] = []
 
     required public init(type: ElementType, scope: Scope) {
         self.type = type
@@ -69,79 +69,34 @@ open class Element {
         return cursor
     }
 
+    fileprivate var blockParser: Parser<[Node]> {
+        if let p = type.bodyParser {
+            return p
+        }
+        return scope.blockParser
+    }
     fileprivate var titleParser: SpanParser {
         if let p = type.titleParser {
             return p
         }
         return scope.spanParser
     }
-    fileprivate var blockParser: NodeParser {
-        if let p = type.bodyParser {
+    fileprivate var spanParser: SpanParser {
+        if let p = type.titleParser {
             return p
         }
-        return scope.blockParser
+        return scope.spanParser
     }
 
-    public func addAttribute(_ attribute: NodeAttribute) {
-        attributes.append(attribute)
+    public func addNodeAttribute(_ attribute: NodeAttribute) {
+        nodeAttributes.append(attribute)
     }
-
-    public func addTitleAttribute(_ attribute: NodeAttribute) {
-        titleAttributes.append(attribute)
-    }
-
-    /// Parse the title of a block element or the body of a span element.
-    ///
-    /// All parsed title nodes are stored in the element and used to
-    /// construct the element's node.
-    ///
-    /// Either uses the element-type specific parser or a default parser
-    /// from the current scope.
-    public func parseSpan(cursor: Cursor, until endMarker: Parser<()>) throws -> Cursor {
-        let (nodes, next) = try titleParser.parse(cursor: cursor, until: endMarker)
-        title += nodes
-        return next
-    }
-
-    /// Parse the title of a block element or the body of a span element.
-    ///
-    /// All parsed title nodes are wrapped in one 'title' node which is
-    /// stored in the element and used to construct the element's node.
-    ///
-    /// Either uses the element-type specific parser or a default parser
-    /// from the current scope.
-    ///
-    /// Always parses up to the end of the line.
-    /// In case of any error, an error node is produced instead of
-    /// throwing or returning early.
-    public func parseTitle(cursor: Cursor) {
-        let start = cursor.position
-        let (nodes, end) = titleParser.parseLine(cursor, error: Element.titleError)
-        title += nodes
-        guard !title.isEmpty else { return }
-        let node = Node(start: start, end: end, nodeType: Element.titleNodeType,
-                           attributes: titleAttributes, children: title)
-        title = [node]
-    }
-    private static let titleError = ErrorNodeType("invalid title")
-
-    private func parseBody(cursor: Cursor, body parser: NodeParser) throws -> Cursor {
-        let (nodes, endCursor) = try parser.parse(cursor)
-        body += nodes
-
-        return endCursor
-    }
-
-    public func parseBody(block lines: [Line], parent cursor: Cursor) {
-        let innerCursor = childCursor(block: lines, parent: cursor)
-        body += blockParser.parseBlock(innerCursor, error: Element.wrongBlockError)
-    }
-    private static let wrongBlockError = ErrorNodeType("wrong block")
 
     /// Create the `Node` for this element.
     public func createNode(start: Position, end: Cursor) -> Node {
         let node = Node(start: start, end: end, nodeType: type.nodeType,
-                           attributes: attributes, children: title + body)
+                           attributes: nodeAttributes,
+                           children: title + attributes + body)
         finish(node)
         return node
     }
@@ -154,12 +109,17 @@ open class Element {
 
 let elementBodyParser = Parser<Parser<[Node]>> { input in
     let element = input.scope.element!
-    return (element.blockParser.parser, input)
+    return (element.blockParser, input)
 }
 
 let elementTitleParser = Parser<(Parser<()>) -> Parser<[Node]>> { input in
     let element = input.scope.element!
-    return (element.titleParser.parser, input)
+    return (element.titleParser, input)
+}
+
+let elementSpanParser = Parser<(Parser<()>) -> Parser<[Node]>> { input in
+    let element = input.scope.element!
+    return (element.spanParser, input)
 }
 
 
@@ -170,13 +130,13 @@ let elementTitleParser = Parser<(Parser<()>) -> Parser<[Node]>> { input in
 open class ElementType {
     let name: String
     let nodeType: NodeType
-    let bodyParser: NodeParser?
+    let bodyParser: Parser<[Node]>?
     let titleParser: SpanParser?
     let template: ScopeTemplate
 
     // TBD: maybe use some special "nothing here" parser as default?
     public init(_ name: String, type: NodeType,
-         body: NodeParser? = nil,
+         body: Parser<[Node]>? = nil,
          title: SpanParser? = nil,
          scope template: ScopeTemplate = ScopeTemplate()) {
         self.name = name
@@ -193,7 +153,9 @@ open class ElementType {
 }
 
 extension ElementType {
-    public convenience init(_ name: String, body: NodeParser? = nil, title: SpanParser? = nil) {
+    public convenience init(_ name: String,
+                            body: Parser<[Node]>? = nil,
+                            title: SpanParser? = nil) {
         self.init(name, type: ElementNodeType(name: name), body: body, title: title)
     }
 }
@@ -254,13 +216,16 @@ extension ScopeTemplate {
 
 /// represent the complete scope: block elements, ...
 open class Scope {
-    public init(blockRegistry: ElementRegistry, markupRegistry: ElementRegistry,
-         blockParser: NodeParser, spanParser: SpanParser) {
+    public init(blockRegistry: ElementRegistry,
+                markupRegistry: ElementRegistry,
+                blockParser: Parser<[Node]>,
+                spanParser: @escaping SpanParser,
+                element: Element? = nil) {
         self.blockRegistry = blockRegistry
         self.markupRegistry = markupRegistry
         self.blockParser = blockParser
         self.spanParser = spanParser
-
+        self.element = element
     }
 
     /// Create a `Element` instance which can be used to
@@ -296,7 +261,7 @@ open class Scope {
     /// available span-level sub-Elements within this scope
     let markupRegistry: ElementRegistry
 
-    let blockParser: NodeParser
+    let blockParser: Parser<[Node]>
     let spanParser: SpanParser
 
     /// the element which is currently being parsed
@@ -309,7 +274,8 @@ extension Scope {
             blockRegistry: ElementRegistry(parent: scope.blockRegistry, template: template.block),
             markupRegistry: ElementRegistry(parent: scope.markupRegistry, template: template.markup),
             blockParser: scope.blockParser,
-            spanParser: scope.spanParser
+            spanParser: scope.spanParser,
+            element: scope.element
         )
     }
 }
