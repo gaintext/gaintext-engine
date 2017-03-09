@@ -29,7 +29,7 @@ class SpanWithDelimitersTests: XCTestCase {
         expect(node.nodeType.name) == "text"
         expect(node.children).to(beEmpty())
 
-        expect(cursor.atEndOfBlock) == true
+        expect(cursor.atEndOfLine) == true
     }
 
     func testNoMath2() throws {
@@ -38,7 +38,7 @@ class SpanWithDelimitersTests: XCTestCase {
         let p = lineParser
         let (nodes, cursor) = try parse(p, doc)
         expect(nodes).to(haveCount(1))
-        expect(cursor.atEndOfBlock) == true
+        expect(cursor.atEndOfLine) == true
     }
 
     func testNoMath3() throws {
@@ -47,7 +47,7 @@ class SpanWithDelimitersTests: XCTestCase {
         let p = lineParser
         let (nodes, cursor) = try parse(p, doc)
         expect(nodes).to(haveCount(1))
-        expect(cursor.atEndOfBlock) == true
+        expect(cursor.atEndOfLine) == true
     }
 
     func testMath1() throws {
@@ -76,7 +76,7 @@ class SpanWithDelimitersTests: XCTestCase {
         expect(fullstop.sourceContent) == "."
         expect(fullstop.sourceRange) == "1:26..1:26"
 
-        expect(cursor.atEndOfBlock) == true
+        expect(cursor.atEndOfLine) == true
     }
 
     func testNested1() throws {
@@ -97,7 +97,7 @@ class SpanWithDelimitersTests: XCTestCase {
         expect(raw.children).to(haveCount(1))
         expect(raw.children[0].sourceContent) == "**foo**"
 
-        expect(cursor.atEndOfBlock) == true
+        expect(cursor.atEndOfLine) == true
     }
 
     #if false // TBD!
@@ -146,7 +146,7 @@ class SpanWithDelimitersTests: XCTestCase {
         expect(text.nodeType.name) == "text"
         expect(text.sourceContent) == "20*x*30"
 
-        expect(cursor.atEndOfBlock) == true
+        expect(cursor.atEndOfLine) == true
     }
 
     func testNestedRaw1() throws {
@@ -166,7 +166,7 @@ class SpanWithDelimitersTests: XCTestCase {
         expect(text.nodeType.name) == "text"
         expect(text.sourceContent) == "~"
 
-        expect(cursor.atEndOfBlock) == true
+        expect(cursor.atEndOfLine) == true
     }
 
     #if false // TBD
@@ -190,7 +190,7 @@ class SpanWithDelimitersTests: XCTestCase {
         expect(text2.nodeType.name) == "text"
         expect(text2.sourceContent) == "~"
 
-        expect(cursor.atEndOfBlock) == true
+        expect(cursor.atEndOfLine) == true
     }
     #endif
 
@@ -216,7 +216,7 @@ class SpanWithDelimitersTests: XCTestCase {
         expect(text.nodeType.name) == "text"
         expect(text.sourceContent) == "*"
 
-        expect(cursor.atEndOfBlock) == true
+        expect(cursor.atEndOfLine) == true
     }
 
     func testNestedRaw4() throws {
@@ -244,7 +244,7 @@ class SpanWithDelimitersTests: XCTestCase {
         expect(text2.nodeType.name) == "text"
         expect(text2.sourceContent) == "~"
 
-        expect(cursor.atEndOfBlock) == true
+        expect(cursor.atEndOfLine) == true
     }
 
     func testRaw1() throws {
@@ -264,7 +264,7 @@ class SpanWithDelimitersTests: XCTestCase {
         expect(nodes[3].sourceContent) == "~]~"
         expect(nodes[3].children[0].sourceContent) == "]"
 
-        expect(cursor.atEndOfBlock) == true
+        expect(cursor.atEndOfLine) == true
     }
 
     func testRaw2() throws {
@@ -285,7 +285,7 @@ class SpanWithDelimitersTests: XCTestCase {
         expect(tilde.sourceContent) == "~"
 
 
-        expect(cursor.atEndOfBlock) == true
+        expect(cursor.atEndOfLine) == true
     }
 
     static var allTests : [(String, (SpanWithDelimitersTests) -> () throws -> Void)] {

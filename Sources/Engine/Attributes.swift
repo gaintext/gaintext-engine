@@ -30,7 +30,7 @@ private var attributeClass: Parser<[Node]> {
 }
 private var attribute: Parser<[Node]> {
     let p = attributeID <|> attributeClass <|> attributeKV
-    return node(type: attrNodeType, p)
+    return node(attrNodeType, content: p)
 }
 
 public var attributes: Parser<[Node]> {

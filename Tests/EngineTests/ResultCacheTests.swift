@@ -28,7 +28,7 @@ class CachedParserTests: XCTestCase {
 
     func testCachedParser() throws {
         let doc = Document(source: "abc")
-        let p = cached(count(textNode(literal("abc"))))
+        let p = cached(count(textNode(spanning: literal("abc"))))
 
         let (result1, tail1) = try parse(p, doc)
         expect(result1[0].sourceContent) == "abc"
@@ -44,7 +44,7 @@ class CachedParserTests: XCTestCase {
     func testRecursive1() throws {
         let doc = Document(source: "")
         var p: Parser<[Node]>!
-        let c = cached(count(textNode(literal("abc"))))
+        let c = cached(count(textNode(spanning: literal("abc"))))
         p = c <+> lazy(p) <|> c
         expect(try p.parse(doc.start())).to(throwError())
         expect(self.calls) == 1
@@ -53,7 +53,7 @@ class CachedParserTests: XCTestCase {
     func testRecursive2() throws {
         let doc = Document(source: "abcdef")
         var p: Parser<[Node]>!
-        let c = cached(count(textNode(literal("abc"))))
+        let c = cached(count(textNode(spanning: literal("abc"))))
         p = c <+> lazy(p) <|> c
 
         let (result, tail) = try parse(p, doc)
@@ -65,7 +65,7 @@ class CachedParserTests: XCTestCase {
     func testRecursive3() throws {
         let doc = Document(source: "abcabcdef")
         var p: Parser<[Node]>!
-        let c = cached(count(textNode(literal("abc"))))
+        let c = cached(count(textNode(spanning: literal("abc"))))
         p = c <+> lazy(p) <|> c
 
         let (result, tail) = try parse(p, doc)

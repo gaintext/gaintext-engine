@@ -18,5 +18,5 @@ private let eolError = errorMarker("cannot escape end-of-line")
 public var escaped: Parser<[Node]> = element(
     literal("\\") *>
     elementCreateMarkupParser(name: "raw") *>
-    elementContent(textNode(character) <|> eolError)
+    elementContent(textNode(spanning: character) <|> eolError)
 )

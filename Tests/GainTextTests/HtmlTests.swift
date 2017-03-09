@@ -32,7 +32,30 @@ class HtmlTests: XCTestCase {
         let html = doc.parseHTML()
 
         expect(html.querySelector("p")?.innerHTML)
-            == "Text with <em>embedded</em> <code>markup</code>."
+            == "Text with <em>embedded</em> <code>markup</code>.\n"
+    }
+
+    func testParagraph() throws {
+        let doc = Document(source:
+            "Line one.\n" +
+            "Line two.\n")
+        let html = doc.parseHTML()
+
+        expect(html.querySelector("p")?.innerHTML)
+            == "Line one.\nLine two.\n"
+    }
+
+    func testPreformatted() throws {
+        let doc = Document(source:
+            "```\n" +
+            "Line one.\n" +
+            " Line two.\n" +
+            "```\n"
+        )
+        let html = doc.parseHTML()
+
+        expect(html.querySelector("code")?.innerHTML)
+            == "Line one.\n Line two.\n"
     }
 
     func testStructuredElements() throws {
@@ -84,6 +107,7 @@ class HtmlTests: XCTestCase {
     static var allTests : [(String, (HtmlTests) -> () throws -> Void)] {
         return [
             ("testWritingText", testWritingText),
+            ("testParagraph", testParagraph),
             ("testStructuredElements", testStructuredElements),
             ("testStructuredText", testStructuredText),
         ]

@@ -151,11 +151,13 @@ class TitledContentTests: XCTestCase {
         expect(para1.nodeType.name) == "p"
         expect(para1.children).to(haveCount(1))
 
-        let text = para1.children[0]
-        expect(text.document) == doc
-        expect(text.sourceRange) == "4:1..4:3"
-        expect(text.nodeType.name) == "text"
-        expect(text.children).to(beEmpty())
+        let line1 = para1.children[0]
+        expect(line1.document) == doc
+        expect(line1.sourceRange) == "4:1..4:3"
+        expect(line1.nodeType.name) == "line"
+        expect(line1.children).to(haveCount(1))
+        expect(line1.children[0].nodeType.name) == "text"
+        expect(line1.children[0].sourceRange) == "4:1..4:3"
 
         expect(cursor.atEndOfBlock) == true
     }

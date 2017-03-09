@@ -79,5 +79,5 @@ public let lineParser = Parser<[Node]> { input in
     guard !input.atEndOfBlock else {
         throw ParserError.notFound(position: input.position)
     }
-    return try input.scope.spanParser(endOfLine).parse(input)
+    return try input.scope.spanParser(satisfying {$0.atEndOfLine}).parse(input)
 }

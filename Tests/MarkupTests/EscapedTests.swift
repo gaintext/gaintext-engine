@@ -36,7 +36,7 @@ class EscapedTests: XCTestCase {
         expect(nodes[1].nodeType.name) == "text"
         expect(nodes[1].sourceContent) == "raw:]"
 
-        expect(cursor.atEndOfBlock) == true
+        expect(cursor.atEndOfLine) == true
     }
 
     func testEOL() throws {
@@ -52,7 +52,7 @@ class EscapedTests: XCTestCase {
 
         expect(nodes[0].children[0].nodeType.name) == "error"
 
-        expect(cursor.atEndOfBlock) == true
+        expect(cursor.atEndOfLine) == true
     }
 
     static var allTests : [(String, (EscapedTests) -> () throws -> Void)] {

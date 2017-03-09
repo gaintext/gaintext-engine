@@ -26,7 +26,7 @@ func node(type: NodeType, attr: String, _ content: Parser<String>) -> Parser<[No
 }
 
 /// Create a node parser which wraps content into a new parent node.
-public func node(type: NodeType, _ content: Parser<[Node]>) -> Parser<[Node]> {
+public func node(_ type: NodeType, content: Parser<[Node]>) -> Parser<[Node]> {
     return Parser { input in
         let start = input.position
         let (children, end) = try content.parse(input)
@@ -64,22 +64,28 @@ private class TextNodeType: NodeType {
 }
 private let textNodeType = TextNodeType()
 
-private class CodeNodeType: NodeType {
-    let name = "code-text"
-    func generate(_ node: Node, parent: HTMLElement) {
-        let code = HTMLElement(tagName: "code")
-        code.append(HTMLText(data: node.sourceContent))
-        parent.append(code)
+private class LineNodeType: NodeType {
+    var name: String
+    init(_ name: String) {
+        self.name = name
+    }
+    func generate(_ node: Node, parent element: HTMLElement) {
+        for child in node.children {
+            child.generate(parent: element)
+        }
+        let newline = HTMLText(data: "\n")
+        element.append(newline)
     }
 }
-private let codeNodeType = CodeNodeType()
+private let lineNodeType = LineNodeType("line")
+private let codeNodeType = LineNodeType("code-line")
 
 public func textNode(start: Position, end: Cursor) -> Node {
     return Node(start: start, end: end, nodeType: textNodeType)
 }
 
 /// Parser wrapping the result of another parser in one text node.
-public func textNode<Content>(_ content: Parser<Content>, type: NodeType = textNodeType) -> Parser<[Node]> {
+public func textNode<Content>(spanning content: Parser<Content>, type: NodeType = textNodeType) -> Parser<[Node]> {
     return Parser { input in
         let start = input.position
         let (_, end) = try content.parse(input)
@@ -88,5 +94,8 @@ public func textNode<Content>(_ content: Parser<Content>, type: NodeType = textN
     }
 }
 
+/// Parser for one line of text.
+public let textLine = node(lineNodeType, content: lineParser) <* advanceLine
+
 /// Parser for one line of code.
-public let codeLine = textNode(wholeLine, type: codeNodeType) <* advanceLine
+public let codeLine = node(codeNodeType, content: textNode(spanning: wholeLine)) <* advanceLine

@@ -162,8 +162,8 @@ extension NodeType {
     public var description: String { return name }
 }
 extension Node {
-    public func generate(parent: HTMLElement) {
-        nodeType.generate(self, parent)
+    public func generate(parent element: HTMLElement) {
+        nodeType.generate(self, parent: element)
     }
 }
 

@@ -28,7 +28,7 @@ private func registerElements(global scope: Scope) {
     let blockElements = [
 //        ImportElementType(),
 //        DefinitionElementType(),
-        ElementType("p", body: list(lineParser)),
+        ElementType("p", body: list(textLine)),
         ElementType("section"),
         ElementType("example"),
         ElementType("math"),
