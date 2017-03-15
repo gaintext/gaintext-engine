@@ -41,8 +41,8 @@ class HtmlTests: XCTestCase {
             "Line two.\n")
         let html = doc.parseHTML()
 
-        expect(html.querySelector("p")?.innerHTML)
-            == "Line one.\nLine two.\n"
+        expect(html.body!.innerHTML)
+            == "<p>Line one.\nLine two.\n</p>"
     }
 
     func testPreformatted() throws {
@@ -58,6 +58,16 @@ class HtmlTests: XCTestCase {
             == "Line one.\n Line two.\n"
     }
 
+    func testAttributes1() throws {
+        let doc = Document(source: "p .cls1 .cls2 key=\"value\": stop")
+
+        let html = doc.parseHTML()
+        let p = html.body!.firstChild! as! HTMLElement
+
+        expect(p.attributes).to(haveCount(2))
+        expect(p.attributes) == ["class": "cls1 cls2", "key": "value"]
+    }
+    
     func testStructuredElements() throws {
         let doc = Document(source:
             "author: Martin Waitz\n" +
@@ -108,6 +118,8 @@ class HtmlTests: XCTestCase {
         return [
             ("testWritingText", testWritingText),
             ("testParagraph", testParagraph),
+            ("testPreformatted", testPreformatted),
+            ("testAttributes1", testAttributes1),
             ("testStructuredElements", testStructuredElements),
             ("testStructuredText", testStructuredText),
         ]

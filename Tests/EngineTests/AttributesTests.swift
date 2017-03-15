@@ -11,7 +11,6 @@
 @testable import Engine
 import GainText
 import Runes
-import HTMLKit
 
 import XCTest
 import Nimble
@@ -145,22 +144,6 @@ class AttributeTests: XCTestCase {
         expect(nodes[2].children[1].attributes) == [.text("value", "value")]
 
         expect(cursor.position.left) == "1:24"
-    }
-
-    func testHTML1() throws {
-        let doc = Document(source: ".cls1 .cls2 key=\"value\": stop")
-        let p = attributesParser
-        let endMarker = literal(":") *> pure(())
-
-        let div = HTMLElement(tagName: "div")
-
-        let (nodes, _) = try parse(p, doc, until: endMarker)
-        for node in nodes {
-            node.nodeType.generate(node, parent: div)
-        }
-
-        expect(div.attributes).to(haveCount(2))
-        expect(div.attributes) == ["class": "cls1 cls2", "key": "value"]
     }
 
     static var allTests : [(String, (AttributeTests) -> () throws -> Void)] {

@@ -9,7 +9,6 @@
 //
 
 import Runes
-import HTMLKit
 
 
 /// Create a node parser from a String parser
@@ -35,6 +34,7 @@ public func node(_ type: NodeType, content: Parser<[Node]>) -> Parser<[Node]> {
         return ([node], end)
     }
 }
+
 /// Wrap some nodes in new parent node.
 ///
 /// Returns a function which transforms a parser into a new parser
@@ -56,30 +56,9 @@ public func node(type: NodeType, keepEmpty: Bool = false) -> (Parser<[Node]>) ->
     }
 }
 
-private class TextNodeType: NodeType {
-    let name = "text"
-    func generate(_ node: Node, parent: HTMLElement) {
-        parent.append(HTMLText(data: node.sourceContent))
-    }
-}
-private let textNodeType = TextNodeType()
+private let textNodeType = NodeType(name: "text")
 
-private class LineNodeType: NodeType {
-    var name: String
-    init(_ name: String) {
-        self.name = name
-    }
-    func generate(_ node: Node, parent element: HTMLElement) {
-        for child in node.children {
-            child.generate(parent: element)
-        }
-        let newline = HTMLText(data: "\n")
-        element.append(newline)
-    }
-}
-private let lineNodeType = LineNodeType("line")
-private let codeNodeType = LineNodeType("code-line")
-
+/// Helper to create a text node
 public func textNode(start: Position, end: Cursor) -> Node {
     return Node(start: start, end: end, nodeType: textNodeType)
 }
@@ -94,8 +73,10 @@ public func textNode<Content>(spanning content: Parser<Content>, type: NodeType 
     }
 }
 
+private let lineNodeType = NodeType(name: "line")
+
 /// Parser for one line of text.
 public let textLine = node(lineNodeType, content: lineParser) <* advanceLine
 
 /// Parser for one line of code.
-public let codeLine = node(codeNodeType, content: textNode(spanning: wholeLine)) <* advanceLine
+public let codeLine = node(lineNodeType, content: textNode(spanning: wholeLine)) <* advanceLine

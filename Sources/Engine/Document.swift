@@ -9,7 +9,6 @@
 //
 
 import Foundation
-import HTMLKit
 
 public protocol ObjectIdentity: class, Equatable, Hashable {}
 extension ObjectIdentity {
@@ -151,20 +150,16 @@ extension Node {
     }
 }
 
-public protocol NodeType: class, CustomStringConvertible {
-    var name: String { get }
-    func prepare(_ node: Node, _ scope: Scope)
-    func generate(_ node: Node, parent: HTMLElement)
+open class NodeType {
+    public var name: String
+    public init(name: String) {
+        self.name = name
+    }
+    open func prepare(_ node: Node, _ scope: Scope) {}
 }
 
-extension NodeType {
-    public func prepare(_ node: Node, _ scope: Scope) {}
+extension NodeType: CustomStringConvertible {
     public var description: String { return name }
-}
-extension Node {
-    public func generate(parent element: HTMLElement) {
-        nodeType.generate(self, parent: element)
-    }
 }
 
 

@@ -9,7 +9,6 @@
 //
 
 import Runes
-import HTMLKit
 
 
 // we have two types of errors:
@@ -26,24 +25,17 @@ public enum ParserError: Error {
 
 /// Block created when a parser matches but finds an error in the input.
 public class ErrorNodeType: NodeType {
-    public let name = "error"
-
     public init(_ message: String) {
         self.message = message
+        super.init(name: "error")
     }
 
-    func describe(_ node: Node) -> String {
-        return "error: \(message): \(node)"
+    public func describe(_ node: Node) -> String {
+        return "error \(node.sourceRange): \(message)"
     }
 
-    func prepare(_ node: Node) {
+    override open func prepare(_ node: Node, _ scope: Scope) {
         print(describe(node))
-    }
-
-    public func generate(_ node: Node, parent: HTMLElement) {
-        let error = HTMLElement(tagName: "parse-error")
-        error.append(HTMLText(data: describe(node)))
-        parent.append(error)
     }
 
     let message: String

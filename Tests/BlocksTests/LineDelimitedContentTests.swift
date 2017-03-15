@@ -46,10 +46,10 @@ class LineDelimitedTests: XCTestCase {
         expect(node.nodeType.name) == "code"
         expect(node.children).to(haveCount(2))
 
-        expect(node.children[0].nodeType.name) == "code-line"
+        expect(node.children[0].nodeType.name) == "line"
         expect(node.children[0].sourceContent) == "abc"
 
-        expect(node.children[1].nodeType.name) == "code-line"
+        expect(node.children[1].nodeType.name) == "line"
         expect(node.children[1].sourceContent) == "def"
 
         expect(cursor.atEndOfBlock) == true
@@ -96,10 +96,10 @@ class LineDelimitedTests: XCTestCase {
         expect(attr.children[0].attributes) == [.text("name", "x")]
         expect(attr.children[1].attributes) == [.text("value", "y")]
 
-        expect(node.children[3].nodeType.name) == "code-line"
+        expect(node.children[3].nodeType.name) == "line"
         expect(node.children[3].sourceContent) == "abc"
         expect(node.children[3].children[0].nodeType.name) == "text"
-        expect(node.children[4].nodeType.name) == "code-line"
+        expect(node.children[4].nodeType.name) == "line"
         expect(node.children[4].sourceContent) == "def"
         expect(node.children[4].children[0].nodeType.name) == "text"
 
@@ -121,10 +121,10 @@ class LineDelimitedTests: XCTestCase {
         expect(title.nodeType.name) == "gaintext-title"
         expect(title.sourceContent) == "title text"
 
-        expect(node.children[1].nodeType.name) == "code-line"
+        expect(node.children[1].nodeType.name) == "line"
         expect(node.children[1].sourceContent) == "abc"
         expect(node.children[1].children[0].nodeType.name) == "text"
-        expect(node.children[2].nodeType.name) == "code-line"
+        expect(node.children[2].nodeType.name) == "line"
         expect(node.children[2].sourceContent) == "def"
         expect(node.children[2].children[0].nodeType.name) == "text"
 
@@ -150,9 +150,9 @@ class LineDelimitedTests: XCTestCase {
         expect(attr.children[1].nodeType.name) == "attribute-value"
         expect(attr.children[1].attributes) == [.text("value", "name")]
 
-        expect(node.children[1].nodeType.name) == "code-line"
+        expect(node.children[1].nodeType.name) == "line"
         expect(node.children[1].sourceContent) == "abc"
-        expect(node.children[2].nodeType.name) == "code-line"
+        expect(node.children[2].nodeType.name) == "line"
         expect(node.children[2].sourceContent) == "def"
 
         expect(tail.atEndOfBlock) == true
@@ -185,9 +185,9 @@ class LineDelimitedTests: XCTestCase {
         expect(attr.children[0].attributes) == [.text("name", "x")]
         expect(attr.children[1].attributes) == [.text("value", "y")]
 
-        expect(node.children[3].nodeType.name) == "code-line"
+        expect(node.children[3].nodeType.name) == "line"
         expect(node.children[3].sourceContent) == "abc"
-        expect(node.children[4].nodeType.name) == "code-line"
+        expect(node.children[4].nodeType.name) == "line"
         expect(node.children[4].sourceContent) == "def"
 
         expect(tail.atEndOfBlock) == true

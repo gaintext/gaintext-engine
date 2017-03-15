@@ -11,6 +11,7 @@
 import Engine
 import Blocks
 import Markup
+import Generator
 import Runes
 
 private let blockParser = list(
