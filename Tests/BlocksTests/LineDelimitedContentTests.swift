@@ -27,7 +27,7 @@ class LineDelimitedTests: XCTestCase {
 
         expect(node.document) == doc
         expect(node.sourceRange) == "1:1..2:3"
-        expect(node.nodeType.name) == "code"
+        expect(node.nodeType.name) == "code-block"
         expect(node.children).to(haveCount(0))
 
         expect(cursor.atEndOfBlock) == true
@@ -43,7 +43,7 @@ class LineDelimitedTests: XCTestCase {
 
         expect(node.document) == doc
         expect(node.sourceRange) == "1:1..4:3"
-        expect(node.nodeType.name) == "code"
+        expect(node.nodeType.name) == "code-block"
         expect(node.children).to(haveCount(2))
 
         expect(node.children[0].nodeType.name) == "line"
@@ -77,7 +77,7 @@ class LineDelimitedTests: XCTestCase {
         expect(nodes).to(haveCount(1))
         let node = nodes[0]
 
-        expect(node.nodeType.name) == "code"
+        expect(node.nodeType.name) == "code-block"
         expect(node.children).to(haveCount(5))
 
         let title = node.children[0]
@@ -113,7 +113,7 @@ class LineDelimitedTests: XCTestCase {
         expect(nodes).to(haveCount(1))
         let node = nodes[0]
 
-        expect(node.nodeType.name) == "code"
+        expect(node.nodeType.name) == "code-block"
         expect(node.children).to(haveCount(3))
 
         let title = node.children[0]
@@ -138,7 +138,7 @@ class LineDelimitedTests: XCTestCase {
         expect(nodes).to(haveCount(1))
         let node = nodes[0]
 
-        expect(node.nodeType.name) == "code"
+        expect(node.nodeType.name) == "code-block"
         expect(node.children).to(haveCount(3))
 
         let attr = node.children[0]
@@ -165,7 +165,7 @@ class LineDelimitedTests: XCTestCase {
         expect(nodes).to(haveCount(1))
         let node = nodes[0]
 
-        expect(node.nodeType.name) == "code"
+        expect(node.nodeType.name) == "code-block"
         expect(node.children).to(haveCount(5))
 
         let title = node.children[0]

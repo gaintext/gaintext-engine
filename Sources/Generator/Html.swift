@@ -55,20 +55,30 @@ func generateHTML(for node: Node, to element: HTMLElement) {
         element[attr] = value
     case "attribute-key", "attribute-value":
         break
+    case "gaintext-title":
+        let title = HTMLElement(tagName: "h1")
+        element.append(title)
+        generateHTML(for: node.children, to: title)
+    case "code-block":
+        let code = HTMLElement(tagName: "code")
+        let pre = HTMLElement(tagName: "pre")
+        element.append(pre)
+        pre.append(code)
+        generateHTML(for: node.children, to: code)
     case "text":
         element.append(HTMLText(data: node.sourceContent))
     case "line":
-        for child in node.children {
-            generateHTML(for: child, to: element)
-        }
-        let newline = HTMLText(data: "\n")
-        element.append(newline)
+        generateHTML(for: node.children, to: element)
+        element.append(HTMLText(data: "\n"))
     default:
         let new = HTMLElement(tagName: node.nodeType.name)
         element.append(new)
+        generateHTML(for: node.children, to: new)
+    }
+}
 
-        for child in node.children {
-            generateHTML(for: child, to: new)
-        }
+func generateHTML(for nodes: [Node], to element: HTMLElement) {
+    for child in nodes {
+        generateHTML(for: child, to: element)
     }
 }

@@ -32,16 +32,16 @@ private func registerElements(global scope: Scope) {
         ElementType("p", body: list(textLine)),
         ElementType("section"),
         ElementType("example"),
-        ElementType("math"),
+        ElementType("math-block"),
         ElementType("table"),
         ElementType("TBD"),
-        ElementType("code", body: list(codeLine))
+        ElementType("code-block", body: list(codeLine))
     ]
     for element in blockElements {
         scope.register(block: element)
     }
-    scope.register(block: "code", alias: "block:`")
-    scope.register(block: "math", alias: "block:$")
+    scope.register(block: "code-block", alias: "block:`")
+    scope.register(block: "math-block", alias: "block:$")
 
     let markupElements = [
         ElementType("TBD"),

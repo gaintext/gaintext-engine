@@ -54,8 +54,8 @@ class HtmlTests: XCTestCase {
         )
         let html = doc.parseHTML()
 
-        expect(html.querySelector("code")?.innerHTML)
-            == "Line one.\n Line two.\n"
+        expect(html.body!.innerHTML)
+            == "<pre><code>Line one.\n Line two.\n</code></pre>"
     }
 
     func testAttributes1() throws {
