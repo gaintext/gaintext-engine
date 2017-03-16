@@ -30,10 +30,10 @@ func getAttribute(for node: Node) -> (String, String) {
     assert(node.children.count == 2)
     assert(node.children[0].nodeType.name == "attribute-key")
     assert(node.children[1].nodeType.name == "attribute-value")
-    guard case let .text(_, key) = node.children[0].attributes[0] else {
+    guard let key = node.children[0].attributes["name"] else {
         assert(false)
     }
-    guard case var .text(_, value) = node.children[1].attributes[0] else {
+    guard let value = node.children[1].attributes["value"] else {
         assert(false)
     }
     return (key, value)
@@ -48,7 +48,7 @@ func generateHTML(for node: Node, to element: HTMLElement) {
     }
     switch node.nodeType.name {
     case "attribute":
-        let (attr, value) = getAttribute(for: node)
+        var (attr, value) = getAttribute(for: node)
         if attr == "class", let orig = element[attr] {
             value = orig + " " + value
         }

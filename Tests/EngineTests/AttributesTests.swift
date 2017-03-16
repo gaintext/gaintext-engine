@@ -31,9 +31,9 @@ class AttributeTests: XCTestCase {
         expect(node.nodeType.name) == "attribute"
         expect(node.children).to(haveCount(2))
         expect(node.children[0].nodeType.name) == "attribute-key"
-        expect(node.children[0].attributes) == [.text("name", "id")]
+        expect(node.children[0].attributes["name"]) == "id"
         expect(node.children[1].nodeType.name) == "attribute-value"
-        expect(node.children[1].attributes) == [.text("value", "id")]
+        expect(node.children[1].attributes["value"]) == "id"
 
         expect(cursor.position.left) == "1:4"
     }
@@ -52,9 +52,9 @@ class AttributeTests: XCTestCase {
         expect(node.nodeType.name) == "attribute"
         expect(node.children).to(haveCount(2))
         expect(node.children[0].nodeType.name) == "attribute-key"
-        expect(node.children[0].attributes) == [.text("name", "class")]
+        expect(node.children[0].attributes["name"]) == "class"
         expect(node.children[1].nodeType.name) == "attribute-value"
-        expect(node.children[1].attributes) == [.text("value", "class")]
+        expect(node.children[1].attributes["value"]) == "class"
 
         expect(cursor.position.left) == "1:7"
     }
@@ -73,9 +73,9 @@ class AttributeTests: XCTestCase {
         expect(node.nodeType.name) == "attribute"
         expect(node.children).to(haveCount(2))
         expect(node.children[0].nodeType.name) == "attribute-key"
-        expect(node.children[0].attributes) == [.text("name", "key")]
+        expect(node.children[0].attributes["name"]) == "key"
         expect(node.children[1].nodeType.name) == "attribute-value"
-        expect(node.children[1].attributes) == [.text("value", "value")]
+        expect(node.children[1].attributes["value"]) == "value"
 
         expect(cursor.position.left) == "1:12"
     }
@@ -94,9 +94,9 @@ class AttributeTests: XCTestCase {
         expect(node.nodeType.name) == "attribute"
         expect(node.children).to(haveCount(2))
         expect(node.children[0].nodeType.name) == "attribute-key"
-        expect(node.children[0].attributes) == [.text("name", "key")]
+        expect(node.children[0].attributes["name"]) == "key"
         expect(node.children[1].nodeType.name) == "attribute-value"
-        expect(node.children[1].attributes) == [.text("value", "a: \"b")]
+        expect(node.children[1].attributes["value"]) == "a: \"b"
 
         expect(cursor.position.left) == "1:13"
     }
@@ -115,9 +115,9 @@ class AttributeTests: XCTestCase {
         expect(node.nodeType.name) == "attribute"
         expect(node.children).to(haveCount(2))
         expect(node.children[0].nodeType.name) == "attribute-key"
-        expect(node.children[0].attributes) == [.text("name", "key")]
+        expect(node.children[0].attributes["name"]) == "key"
         expect(node.children[1].nodeType.name) == "attribute-value"
-        expect(node.children[1].attributes) == [.text("value", "value")]
+        expect(node.children[1].attributes["value"]) == "value"
 
         expect(cursor.position.left) == "1:10"
     }
@@ -132,16 +132,16 @@ class AttributeTests: XCTestCase {
 
         expect(nodes[0].sourceRange) == "1:1..1:5"
         expect(nodes[0].nodeType.name) == "attribute"
-        expect(nodes[0].children[0].attributes) == [.text("name", "class")]
-        expect(nodes[0].children[1].attributes) == [.text("value", "cls1")]
+        expect(nodes[0].children[0].attributes["name"]) == "class"
+        expect(nodes[0].children[1].attributes["value"]) == "cls1"
         expect(nodes[1].sourceRange) == "1:7..1:11"
         expect(nodes[1].nodeType.name) == "attribute"
-        expect(nodes[1].children[0].attributes) == [.text("name", "class")]
-        expect(nodes[1].children[1].attributes) == [.text("value", "cls2")]
+        expect(nodes[1].children[0].attributes["name"]) == "class"
+        expect(nodes[1].children[1].attributes["value"]) == "cls2"
         expect(nodes[2].sourceRange) == "1:13..1:23"
         expect(nodes[2].nodeType.name) == "attribute"
-        expect(nodes[2].children[0].attributes) == [.text("name", "key")]
-        expect(nodes[2].children[1].attributes) == [.text("value", "value")]
+        expect(nodes[2].children[0].attributes["name"]) == "key"
+        expect(nodes[2].children[1].attributes["value"]) == "value"
 
         expect(cursor.position.left) == "1:24"
     }

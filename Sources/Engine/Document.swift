@@ -88,27 +88,6 @@ extension Document {
 }
 
 
-public enum NodeAttribute {
-    case bool(String)
-    case number(String, Int) // TBD: Float, Unit
-    case text(String, String)
-}
-
-extension NodeAttribute: Equatable {
-    static public func ==(lhs: NodeAttribute, rhs: NodeAttribute) -> Bool {
-        switch (lhs, rhs) {
-        case (.bool(let name1), .bool(let name2)):
-            return name1 == name2
-        case (.number(let name1, let value1), .number(let name2, let value2)):
-            return name1 == name2 && value1 == value2
-        case (.text(let name1, let value1), .text(let name2, let value2)):
-            return name1 == name2 && value1 == value2
-        default:
-            return false
-        }
-    }
-}
-
 // Nodes are used for the first parst phase
 // They describe the hierarchical structure of the
 // input document
@@ -116,13 +95,13 @@ public struct Node {
     public let range: SourceRange
     public let document: Document
     public let nodeType: NodeType
-    public let attributes: [NodeAttribute]
+    public let attributes: [String: String]
     public let children: [Node]
 }
 
 extension Node {
     public init(start: Position, end: Cursor, nodeType: NodeType,
-                attributes: [NodeAttribute] = [], children: [Node] = []) {
+                attributes: [String: String] = [:], children: [Node] = []) {
         self.range = SourceRange(start: start, end: end.position)
         self.document = end.document
         self.nodeType = nodeType

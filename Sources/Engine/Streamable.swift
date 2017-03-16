@@ -57,26 +57,12 @@ private func _write<Target: TextOutputStream>(escaped string: String, to s: inou
 }
 
 
-extension NodeAttribute: TextOutputStreamable {
-    public func write<Target : TextOutputStream>(to target: inout Target) {
-        switch self {
-        case .bool(let name):
-            target.write(" \(name)")
-        case .number(let name, let value):
-            target.write(" \(name)=\(value)")
-        case .text(let name, let value):
-            // TBD: escape string
-            target.write(" \(name)=\"\(value)\"")
-        }
-    }
-}
-
 extension Node: HTMLStreamable {
     public func write<Target: TextOutputStream>(to target: inout Target, indent level: Int) {
         _write(indentation: level, to: &target)
         target.write("<\(nodeType.name) start=\"\(range.start.right)\" end=\"\(range.end.left)\"")
-        for attribute in attributes {
-            attribute.write(to: &target)
+        for (key, value) in attributes {
+            target.write(" \(key)='\(value)'")
         }
         target.write(">\n")
         if children.isEmpty {

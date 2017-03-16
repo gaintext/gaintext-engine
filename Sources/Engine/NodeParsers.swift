@@ -19,7 +19,7 @@ func node(type: NodeType, attr: String, _ content: Parser<String>) -> Parser<[No
         let start = input.position
         let (value, end) = try content.parse(input)
         let node = Node(start: start, end: end, nodeType: type,
-                        attributes: [.text(attr, value)])
+                        attributes: [attr: value])
         return ([node], end)
     }
 }

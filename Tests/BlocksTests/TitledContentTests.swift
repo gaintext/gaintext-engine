@@ -171,18 +171,18 @@ class TitledContentTests: XCTestCase {
 
         let node1 = nodes[0]
         expect(node1.nodeType.name) == "section"
-        expect(node1.attributes) == [NodeAttribute.text("underline", "=")]
+        expect(node1.attributes) == ["underline": "="]
         expect(node1.children.count) == 2
         expect(node1.children[0].nodeType.name) == "gaintext-title"
         let node11 = node1.children[1]
         expect(node11.nodeType.name) == "section"
-        expect(node11.attributes) == [NodeAttribute.text("underline", "-")]
+        expect(node11.attributes) == ["underline": "-"]
         expect(node11.children.count) == 1
         expect(node11.children[0].nodeType.name) == "gaintext-title"
 
         let node2 = nodes[1]
         expect(node2.nodeType.name) == "section"
-        expect(node2.attributes) == [NodeAttribute.text("underline", "=")]
+        expect(node2.attributes) == ["underline": "="]
         expect(node2.children.count) == 1
         expect(node2.children[0].nodeType.name) == "gaintext-title"
 
@@ -208,9 +208,9 @@ class TitledContentTests: XCTestCase {
         expect(attr.nodeType.name) == "attribute"
         expect(attr.children).to(haveCount(2))
         expect(attr.children[0].nodeType.name) == "attribute-key"
-        expect(attr.children[0].attributes) == [.text("name", "id")]
+        expect(attr.children[0].attributes) == ["name": "id"]
         expect(attr.children[1].nodeType.name) == "attribute-value"
-        expect(attr.children[1].attributes) == [.text("value", "name")]
+        expect(attr.children[1].attributes) == ["value": "name"]
 
         expect(tail.atEndOfBlock) == true
     }
@@ -234,9 +234,9 @@ class TitledContentTests: XCTestCase {
         expect(attr.nodeType.name) == "attribute"
         expect(attr.children).to(haveCount(2))
         expect(attr.children[0].nodeType.name) == "attribute-key"
-        expect(attr.children[0].attributes) == [.text("name", "class")]
+        expect(attr.children[0].attributes) == ["name": "class"]
         expect(attr.children[1].nodeType.name) == "attribute-value"
-        expect(attr.children[1].attributes) == [.text("value", "name")]
+        expect(attr.children[1].attributes) == ["value": "name"]
 
         expect(tail.atEndOfBlock) == true
     }
@@ -259,14 +259,14 @@ class TitledContentTests: XCTestCase {
         let id = node.children[1]
         expect(id.nodeType.name) == "attribute"
         expect(id.children).to(haveCount(2))
-        expect(id.children[0].attributes) == [.text("name", "id")]
-        expect(id.children[1].attributes) == [.text("value", "name")]
+        expect(id.children[0].attributes) == ["name": "id"]
+        expect(id.children[1].attributes) == ["value": "name"]
 
         let attr = node.children[2]
         expect(attr.nodeType.name) == "attribute"
         expect(attr.children).to(haveCount(2))
-        expect(attr.children[0].attributes) == [.text("name", "x")]
-        expect(attr.children[1].attributes) == [.text("value", "y")]
+        expect(attr.children[0].attributes) == ["name": "x"]
+        expect(attr.children[1].attributes) == ["value": "y"]
 
         let content = node.children[3]
         expect(content.nodeType.name) == "p"

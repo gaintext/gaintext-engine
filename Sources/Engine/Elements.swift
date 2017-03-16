@@ -26,7 +26,7 @@ open class Element {
     public var title: [Node] = []
     public var attributes: [Node] = []
     public var body: [Node] = []
-    private var nodeAttributes: [NodeAttribute] = []
+    private var nodeAttributes: [String: String] = [:]
 
     required public init(type: ElementType, scope: Scope) {
         self.type = type
@@ -64,8 +64,8 @@ open class Element {
         return scope.spanParser
     }
 
-    public func addNodeAttribute(_ attribute: NodeAttribute) {
-        nodeAttributes.append(attribute)
+    public func addNodeAttribute(_ key: String, value: String) {
+        nodeAttributes[key] = value
     }
 
     /// Create the `Node` for this element.

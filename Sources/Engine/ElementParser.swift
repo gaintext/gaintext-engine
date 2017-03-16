@@ -56,10 +56,10 @@ public let elementStartMarkupParser = (identifier >>- elementCreateMarkupParser)
     attributesFollowedByColon <* optional(whitespace)
 
 /// Parser adding the specified attribute to the currently parsed element.
-public func elementNodeAttribute(_ attr: NodeAttribute) -> Parser<()> {
+public func elementNodeAttribute(_ key: String, value: String) -> Parser<()> {
     return Parser { input in
         let element = input.scope.element!
-        element.addNodeAttribute(attr)
+        element.addNodeAttribute(key, value: value)
         return ((), input)
     }
 }
