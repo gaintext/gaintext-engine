@@ -45,6 +45,16 @@ class HtmlTests: XCTestCase {
             == "<p>Line one.\nLine two.\n</p>"
     }
 
+    func testBlockquote() throws {
+        let doc = Document(source:
+            "> Line one.\n" +
+            "> Line two.\n")
+        let html = doc.parseHTML()
+
+        expect(html.body!.innerHTML)
+            == "<blockquote><p>Line one.\nLine two.\n</p></blockquote>"
+    }
+
     func testPreformatted() throws {
         let doc = Document(source:
             "```\n" +
@@ -56,6 +66,19 @@ class HtmlTests: XCTestCase {
 
         expect(html.body!.innerHTML)
             == "<pre><code>Line one.\n Line two.\n</code></pre>"
+    }
+
+    func testPreformattedBlockquote() throws {
+        let doc = Document(source:
+            "> ```\n" +
+            "> Line one.\n" +
+            ">  Line two.\n" +
+            "> ```\n"
+        )
+        let html = doc.parseHTML()
+
+        expect(html.body!.innerHTML)
+            == "<blockquote><pre><code>Line one.\n Line two.\n</code></pre></blockquote>"
     }
 
     func testAttributes1() throws {
@@ -118,7 +141,9 @@ class HtmlTests: XCTestCase {
         return [
             ("testWritingText", testWritingText),
             ("testParagraph", testParagraph),
+            ("testBlockquote", testBlockquote),
             ("testPreformatted", testPreformatted),
+            ("testPreformattedBlockquote", testPreformattedBlockquote),
             ("testAttributes1", testAttributes1),
             ("testStructuredElements", testStructuredElements),
             ("testStructuredText", testStructuredText),

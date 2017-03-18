@@ -11,7 +11,7 @@
 import Runes
 
 
-func indentedBlockParser(prefix: String) -> Parser<[Line]> {
+public func prefixedBlockParser(prefix: String) -> Parser<[Line]> {
     assert(!prefix.isEmpty)
     return Parser { input in
         var cursor = input
@@ -41,4 +41,4 @@ func indentedBlockParser(prefix: String) -> Parser<[Line]> {
 }
 
 public let indentationParser =
-    lookahead(whitespace) >>- indentedBlockParser
+    lookahead(whitespace) >>- prefixedBlockParser

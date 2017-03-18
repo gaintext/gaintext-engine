@@ -136,7 +136,7 @@ class ParagraphTests: XCTestCase {
             ("testReject1", testReject1),
             ("testReject2", testReject2),
             ("testReject3", testReject3),
-            ("testSingleLin1", testSingleLine1),
+            ("testSingleLine1", testSingleLine1),
             ("testSingleLine2", testSingleLine2),
             ("testMultiLine1", testMultiLine1),
             ("testMultiLine2", testMultiLine2),
