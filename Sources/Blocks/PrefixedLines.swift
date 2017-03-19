@@ -8,16 +8,25 @@
 // (at your option) any later version.
 //
 
-import Runes
+import Engine
 
 
-public func prefixedBlockParser(prefix: String) -> Parser<[Line]> {
+/// Parser for prefixed lines
+///
+/// Returns the rest of the current line plus all following
+/// lines which are prefixed by the given string.
+func prefixedLines(prefix: String) -> Parser<[Line]> {
     assert(!prefix.isEmpty)
+    let count = prefix.characters.count
     return Parser { input in
         var cursor = input
-        var nextCursor = cursor
         var lines: [Line] = []
         var tentative: [Line] = []
+        if !cursor.atWhitespaceOnlyLine {
+            lines.append(cursor.tailLine())
+        }
+        try! cursor.advanceLine()
+        var nextCursor = cursor
         while !cursor.atEndOfBlock {
             if cursor.atWhitespaceOnlyLine {
                 // only use this line if other indented content follows
@@ -26,8 +35,8 @@ public func prefixedBlockParser(prefix: String) -> Parser<[Line]> {
                 continue
             }
             guard cursor.tail.hasPrefix(prefix) else { break }
-            try! cursor.advance(by: prefix.characters.count)
-            let line = Line(start: cursor.position, endIndex: cursor.line.endIndex)
+            try! cursor.advance(by: count)
+            let line = cursor.tailLine()
             if !tentative.isEmpty {
                 lines.append(contentsOf: tentative)
                 tentative = []
@@ -39,6 +48,3 @@ public func prefixedBlockParser(prefix: String) -> Parser<[Line]> {
         return (lines, nextCursor)
     }
 }
-
-public let indentationParser =
-    lookahead(whitespace) >>- prefixedBlockParser

@@ -9,18 +9,19 @@
 //
 
 @testable import Engine
+@testable import Blocks
 import GainText
+import Runes
 
 import XCTest
 import Nimble
 
 
-class IndentParserTests: XCTestCase {
+class PrefixedLinesTests: XCTestCase {
 
     func testSuccess() throws {
         let doc = Document(source: "  a\n  b\n")
-        let indented = prefixedBlockParser(prefix: "  ")
-
+        let indented = whitespace >>- prefixedLines
         let (lines, cursor) = try parse(indented, doc)
         expect(lines).to(haveCount(2))
 
@@ -30,7 +31,7 @@ class IndentParserTests: XCTestCase {
         expect(cursor.atEndOfBlock) == true
     }
 
-    static var allTests : [(String, (IndentParserTests) -> () throws -> Void)] {
+    static var allTests : [(String, (PrefixedLinesTests) -> () throws -> Void)] {
         return [
             ("testSuccess", testSuccess),
         ]

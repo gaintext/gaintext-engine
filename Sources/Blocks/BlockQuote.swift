@@ -12,15 +12,15 @@ import Engine
 import Runes
 
 
-private let prefix = lookahead(literal("> "))
+private let prefix = literal("> ")
 
-private let quotedBlockLines = prefix >>- prefixedBlockParser
+private let quotedBlockLines = prefix >>- prefixedLines
 
 /// Parser for quoted block
 ///
 /// Matches all lines starting with "> " and puts them into
 /// one "quoted-block" element.
-public let quotedBlock = prefix *> element(
+public let quotedBlock = lookahead(prefix) *> element(
     elementCreateBlockParser(name: "blockquote") *>
     quotedBlockLines >>- subBlock(elementBody)
 ) <* skipEmptyLines
