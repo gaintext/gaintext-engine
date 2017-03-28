@@ -105,6 +105,17 @@ class TitledContentTests: XCTestCase {
         expect(cursor.atEndOfBlock) == true
     }
 
+    func testDashedLine() throws {
+        let doc = Document(source: "abcde\n= = =")
+        let p = titledContent
+
+        let (nodes, cursor) = try parse(p, doc)
+        expect(nodes).to(haveCount(1))
+        expect(nodes[0].nodeType.name) == "section"
+
+        expect(cursor.atEndOfBlock) == true
+    }
+
     func testEmptyElement() throws {
         let doc = Document(source: "test: abc\n===\n\n")
         doc.global.register(block: ElementType("test"))
@@ -158,6 +169,35 @@ class TitledContentTests: XCTestCase {
         expect(line1.children).to(haveCount(1))
         expect(line1.children[0].nodeType.name) == "text"
         expect(line1.children[0].sourceRange) == "4:1..4:3"
+
+        expect(cursor.atEndOfBlock) == true
+    }
+
+    func testBiggerSection() throws {
+        let doc = Document(source: "abc\n===\n\ndef\n\nghi\njkl\n")
+        let p = titledContent
+
+        let (nodes, cursor) = try parse(p, doc)
+        expect(nodes).to(haveCount(1))
+        let node = nodes[0]
+
+        expect(node.sourceRange) == "1:1..7:3"
+        expect(node.nodeType.name) == "section"
+        expect(node.children).to(haveCount(3))
+
+        let title = node.children[0]
+        expect(title.sourceRange) == "1:1..1:3"
+        expect(title.nodeType.name) == "gaintext-title"
+
+        let para1 = node.children[1]
+        expect(para1.sourceRange) == "4:1..5:0"
+        expect(para1.nodeType.name) == "p"
+        expect(para1.children).to(haveCount(1))
+
+        let para2 = node.children[2]
+        expect(para2.sourceRange) == "6:1..7:3"
+        expect(para2.nodeType.name) == "p"
+        expect(para2.children).to(haveCount(2))
 
         expect(cursor.atEndOfBlock) == true
     }

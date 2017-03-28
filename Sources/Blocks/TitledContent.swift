@@ -28,11 +28,11 @@ func detectSectionStart(underlineChars: String = "=-~_+'\"") -> Parser<Character
         var count = 1
         try! cursor.advance()
         while !cursor.atEndOfLine {
-            if cursor.atWhitespace { continue }
-            guard cursor.char == c else {
-                throw ParserError.notFound(position: input.position)
+            if cursor.char == c {
+                count += 1
+            } else if !cursor.atWhitespace {
+               throw ParserError.notFound(position: input.position)
             }
-            count += 1
             try! cursor.advance()
         }
         guard count >= 3 else {
