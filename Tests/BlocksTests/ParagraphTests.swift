@@ -100,7 +100,6 @@ class ParagraphTests: XCTestCase {
 
     func testMultiLine2() throws {
         let doc = Document(source: "a\nb\n\nc\n")
-//        let section = ListParser(para)
         let p = list(paragraph, separator: skipEmptyLines)
 
         let (nodes, cursor) = try parse(p, doc)
@@ -131,6 +130,43 @@ class ParagraphTests: XCTestCase {
         expect(cursor.atEndOfBlock) == true
     }
 
+    func testWhitespaceSeparated1() throws {
+        let doc = Document(source: "a\nb\n   c\nd\n")
+        let p = list(paragraph, separator: skipEmptyLines)
+
+        let (nodes, cursor) = try parse(p, doc)
+        expect(nodes).to(haveCount(2))
+
+        let para1 = nodes[0]
+        expect(para1.sourceRange) == "1:1..3:0"
+        expect(para1.nodeType.name) == "p"
+        expect(para1.children).to(haveCount(2))
+
+        let para2 = nodes[1]
+        expect(para2.sourceRange) == "3:1..4:1"
+        expect(para2.nodeType.name) == "p"
+        expect(para2.children).to(haveCount(2))
+
+        expect(cursor.atEndOfBlock) == true
+    }
+
+    func testWhitespaceSeparated2() throws {
+        let doc = Document(source: "a\nb\n - c\n")
+
+        let nodes = doc.parse()
+        expect(nodes).to(haveCount(2))
+
+        let para1 = nodes[0]
+        expect(para1.sourceRange) == "1:1..3:0"
+        expect(para1.nodeType.name) == "p"
+        expect(para1.children).to(haveCount(2))
+
+        let ul = nodes[1]
+        expect(ul.sourceRange) == "3:1..3:4"
+        expect(ul.nodeType.name) == "ul"
+        expect(ul.children).to(haveCount(1))
+    }
+
     static var allTests : [(String, (ParagraphTests) -> () throws -> Void)] {
         return [
             ("testReject1", testReject1),
@@ -140,6 +176,8 @@ class ParagraphTests: XCTestCase {
             ("testSingleLine2", testSingleLine2),
             ("testMultiLine1", testMultiLine1),
             ("testMultiLine2", testMultiLine2),
+            ("testWhitespaceSeparated1", testWhitespaceSeparated1),
+            ("testWhitespaceSeparated2", testWhitespaceSeparated2),
         ]
     }
 }

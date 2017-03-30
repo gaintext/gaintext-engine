@@ -11,12 +11,24 @@
 import Engine
 import Runes
 
+private func atEndOfParagraph(_ input: Cursor) -> Bool {
+    if input.atEndOfBlock || input.atEndOfLine { return true }
+    if input.atWhitespace { return true }
+    return false
+}
 
 private let contentLines = Parser<[Line]> { input in
     var cursor = input
     var lines: [Line] = []
-    while !cursor.atEndOfBlock {
-        guard !cursor.atWhitespaceOnlyLine else { break }
+    guard !cursor.atEndOfBlock && !cursor.atEndOfLine else {
+        return ([], input)
+    }
+    // first line
+    lines.append(cursor.line)
+    try! cursor.advanceLine()
+    // append all further lines
+    while !atEndOfParagraph(cursor) {
+        if atEndOfParagraph(cursor) { break }
         lines.append(cursor.line)
         try! cursor.advanceLine()
     }
