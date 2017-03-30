@@ -15,7 +15,7 @@ import Generator
 import Runes
 
 private let blockParser = list(
-    titledContent <|> elementBlockParser <|> lineDelimitedContent <|>
+    listParser <|> titledContent <|> elementBlockParser <|> lineDelimitedContent <|>
     quotedBlock <|> paragraph,
     separator: skipEmptyLines
 )
@@ -35,6 +35,8 @@ private func registerElements(global scope: Scope) {
         ElementType("example"),
         ElementType("math-block"),
         ElementType("blockquote"),
+        elementLI,
+        elementUL,
         ElementType("table"),
         ElementType("TBD"),
         ElementType("code-block", body: list(codeLine))

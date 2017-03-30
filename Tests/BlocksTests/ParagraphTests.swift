@@ -167,6 +167,40 @@ class ParagraphTests: XCTestCase {
         expect(ul.children).to(haveCount(1))
     }
 
+    func testListSeparated1() throws {
+        let doc = Document(source: "a\nb\n- c\n")
+
+        let nodes = doc.parse()
+        expect(nodes).to(haveCount(2))
+
+        let para1 = nodes[0]
+        expect(para1.sourceRange) == "1:1..3:0"
+        expect(para1.nodeType.name) == "p"
+        expect(para1.children).to(haveCount(2))
+
+        let ul = nodes[1]
+        expect(ul.sourceRange) == "3:1..3:3"
+        expect(ul.nodeType.name) == "ul"
+        expect(ul.children).to(haveCount(1))
+    }
+
+    func testListSeparated2() throws {
+        let doc = Document(source: "a\nb\n* c\n")
+
+        let nodes = doc.parse()
+        expect(nodes).to(haveCount(2))
+
+        let para1 = nodes[0]
+        expect(para1.sourceRange) == "1:1..3:0"
+        expect(para1.nodeType.name) == "p"
+        expect(para1.children).to(haveCount(2))
+
+        let ul = nodes[1]
+        expect(ul.sourceRange) == "3:1..3:3"
+        expect(ul.nodeType.name) == "ul"
+        expect(ul.children).to(haveCount(1))
+    }
+
     static var allTests : [(String, (ParagraphTests) -> () throws -> Void)] {
         return [
             ("testReject1", testReject1),
@@ -178,6 +212,8 @@ class ParagraphTests: XCTestCase {
             ("testMultiLine2", testMultiLine2),
             ("testWhitespaceSeparated1", testWhitespaceSeparated1),
             ("testWhitespaceSeparated2", testWhitespaceSeparated2),
+            ("testListSeparated1", testListSeparated1),
+            ("testListSeparated2", testListSeparated2),
         ]
     }
 }

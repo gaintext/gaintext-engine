@@ -14,6 +14,9 @@ import Runes
 private func atEndOfParagraph(_ input: Cursor) -> Bool {
     if input.atEndOfBlock || input.atEndOfLine { return true }
     if input.atWhitespace { return true }
+    // TBD: don't hardcode the start of lists here?!
+    if literal("- ").matches(input) { return true }
+    if literal("* ").matches(input) { return true }
     return false
 }
 

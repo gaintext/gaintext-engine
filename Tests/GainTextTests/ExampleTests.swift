@@ -24,6 +24,7 @@ class ExampleTests: XCTestCase {
             "\n" +
             "Text with _embedded_ `markup`.\n" +
             "\n" +
+            "Lists can be introduced by dashes or asterisks:\n" +
             " * Layout in source is important\n" +
             "   - allows to write beautiful source documents\n" +
             "   - also readable by non-techies\n" +
@@ -34,10 +35,23 @@ class ExampleTests: XCTestCase {
 
         expect(nodes[0].nodeType.name) == "section"
 
-        expect(nodes[0].children).to(haveCount(3))
+        expect(nodes[0].children).to(haveCount(4))
         expect(nodes[0].children[0].nodeType.name) == "gaintext-title"
         expect(nodes[0].children[1].nodeType.name) == "p"
-        //TBD expect(nodes[0].children[2].type.name) == "ul"
+        expect(nodes[0].children[2].nodeType.name) == "p"
+        expect(nodes[0].children[3].nodeType.name) == "ul"
+
+        let items = nodes[0].children[3].children
+        expect(items).to(haveCount(2))
+        expect(items[0].nodeType.name) == "li"
+        expect(items[0].sourceRange) == "7:2..10:1"
+        expect(items[0].children).to(haveCount(2))
+        expect(items[0].children[0].nodeType.name) == "p"
+        expect(items[0].children[1].nodeType.name) == "ul"
+        expect(items[1].nodeType.name) == "li"
+        expect(items[1].sourceRange) == "10:2..10:6"
+        expect(items[1].children).to(haveCount(1))
+        expect(items[1].children[0].nodeType.name) == "p"
     }
 
     func testStructuredElements() throws {
