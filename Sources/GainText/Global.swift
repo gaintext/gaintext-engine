@@ -22,7 +22,7 @@ private let blockParser = list(
 
 
 private let spanParser = textWithMarkupParser(markup: cached(
-    escaped <|> spanWithBrackets <|> spanWithDelimiters
+    escaped <|> htmlEntity <|> spanWithBrackets <|> spanWithDelimiters
 ))
 
 

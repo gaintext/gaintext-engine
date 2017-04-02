@@ -70,6 +70,9 @@ func generateHTML(for node: Node, to element: HTMLElement) {
     case "line":
         generateHTML(for: node.children, to: element)
         element.append(HTMLText(data: "\n"))
+    case "html":
+        let parser = HTMLParser(string: node.sourceContent)
+        element.append(parser.parseFragment(withContextElement: element))
     default:
         let new = HTMLElement(tagName: node.nodeType.name)
         element.append(new)

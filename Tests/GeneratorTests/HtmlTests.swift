@@ -134,7 +134,22 @@ class HtmlTests: XCTestCase {
         expect(nodes[1].nodeType.name) == "author"
         expect(nodes[2].nodeType.name) == "abstract"
         expect(nodes[3].nodeType.name) == "section"
+    }
 
+    func testEntities1() throws {
+        let text = "HTML &amp; entities &lt;html&gt;&lt;/html&gt; elements\n"
+
+        let doc = Document(source: text)
+        let html = doc.parseHTML()
+
+        expect(html.querySelector("p")?.innerHTML) == text
+    }
+
+    func testEntities2() throws {
+        let doc = Document(source: "&mdash; &quot; &#182;\n")
+        let html = doc.parseHTML()
+
+        expect(html.querySelector("p")?.innerHTML) == "— \" ¶\n"
     }
 
     static var allTests : [(String, (HtmlTests) -> () throws -> Void)] {
