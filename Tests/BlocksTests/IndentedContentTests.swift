@@ -56,7 +56,7 @@ class IndentedContentTests: XCTestCase {
         expect(cursor.atEndOfBlock) == true
     }
 
-    func testContent() throws {
+    func testContent1() throws {
         let doc = Document(source: "test: title\n content\n")
         doc.global.register(block: ElementType("test"))
         let p = elementWithIndentedContent
@@ -67,6 +67,31 @@ class IndentedContentTests: XCTestCase {
 
         expect(node.document) == doc
         expect(node.sourceRange) == "1:1..2:8"
+        expect(node.nodeType.name) == "test"
+        expect(node.children).to(haveCount(2))
+
+        let title = node.children[0]
+        expect(title.nodeType.name) == "gaintext-title"
+        expect(title.sourceContent) == "title"
+
+        let content = node.children[1]
+        expect(content.nodeType.name) == "p"
+        expect(content.sourceContent) == "content"
+
+        expect(cursor.atEndOfBlock) == true
+    }
+
+    func testContent2() throws {
+        let doc = Document(source: "test: title\n\n content\n")
+        doc.global.register(block: ElementType("test"))
+        let p = elementWithIndentedContent
+
+        let (nodes, cursor) = try parse(p, doc)
+        expect(nodes).to(haveCount(1))
+        let node = nodes[0]
+
+        expect(node.document) == doc
+        expect(node.sourceRange) == "1:1..3:8"
         expect(node.nodeType.name) == "test"
         expect(node.children).to(haveCount(2))
 
@@ -286,7 +311,8 @@ class IndentedContentTests: XCTestCase {
         return [
             ("testSimple", testSimple),
             ("testTitle", testTitle),
-            ("testContent", testContent),
+            ("testContent1", testContent1),
+            ("testContent2", testContent2),
             ("testId1", testId1),
             ("testId2", testId2),
             ("testClass1", testClass1),

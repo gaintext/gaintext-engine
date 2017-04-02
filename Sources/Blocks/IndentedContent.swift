@@ -24,7 +24,7 @@ private let indentedLines =
 let elementWithIndentedContent = element(
     elementStartBlockParser *> elementTitleLine *>
     endOfLine *>
-    optional(indentedLines, otherwise: []) >>- elementBodyBlock
+    optional(skipEmptyLines *> indentedLines, otherwise: []) >>- elementBodyBlock
 )
 
 /// Parser producing an error node spanning the whole line.
