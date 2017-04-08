@@ -96,6 +96,9 @@ extension Cursor {
     public var tail: String {
         return source.substring(with: position.index..<line.endIndex)
     }
+    public func tailLine() -> Line {
+        return Line(start: position, endIndex: line.endIndex)
+    }
 }
 
 extension Cursor {

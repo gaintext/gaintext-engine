@@ -11,32 +11,8 @@
 
 /// NodeType for Elements
 open class ElementNodeType: NodeType {
-    public init(name: String) {
-        self.name = name
-    }
-
-    public var name: String
-
-    /// Prepare a newly created `Node`.
-    open func prepare(_ node: Node, _ scope: Scope) {
-        // allow to override it
-    }
 }
 
-extension ElementNodeType {
-    public func constructAST(_ node: Node) -> ASTNode {
-        assert(ObjectIdentifier(node.nodeType) == ObjectIdentifier(self))
-        let children = node.children.map { node in
-            node.nodeType.constructAST(node)
-        }
-        return ASTNode.tag(name: name, attributes: node.attributes,
-                           children: children)!
-    }
-}
-
-extension ElementNodeType: CustomStringConvertible {
-    public var description: String { return "element \(name)" }
-}
 
 /// Control the parsing of a new element.
 ///
@@ -50,7 +26,7 @@ open class Element {
     public var title: [Node] = []
     public var attributes: [Node] = []
     public var body: [Node] = []
-    private var nodeAttributes: [NodeAttribute] = []
+    private var nodeAttributes: [String: String] = [:]
 
     required public init(type: ElementType, scope: Scope) {
         self.type = type
@@ -88,8 +64,8 @@ open class Element {
         return scope.spanParser
     }
 
-    public func addNodeAttribute(_ attribute: NodeAttribute) {
-        nodeAttributes.append(attribute)
+    public func addNodeAttribute(_ key: String, value: String) {
+        nodeAttributes[key] = value
     }
 
     /// Create the `Node` for this element.

@@ -20,5 +20,17 @@ public struct Parser<Result> {
     }
 }
 
+extension Parser {
+    /// Just test whether this parser matches the input.
+    public func matches(_ input: Cursor) -> Bool {
+        do {
+            _ = try parse(input)
+            return true
+        } catch {
+            return false
+        }
+    }
+}
+
 /// A parser for an embedded span, parameterized by an endMarker parser.
 public typealias SpanParser = (Parser<()>) -> Parser<[Node]>

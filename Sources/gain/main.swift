@@ -11,6 +11,7 @@
 import Foundation
 import Engine
 import GainText
+import HTMLKit
 
 func main() throws {
     let name = CommandLine.arguments[1]
@@ -18,16 +19,7 @@ func main() throws {
 
     let doc = Document(source: String(text))
 
-    let nodes = doc.parse()
-
-    print("<!DOCTYPE html>")
-    print("<html>")
-    print("<meta charset=\"utf-8\">")
-    print()
-    for node in nodes {
-        print(node.html)
-    }
-    print("</html>")
+    print(doc.parseHTML().innerHTML)
 }
 
 do {

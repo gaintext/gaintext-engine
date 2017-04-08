@@ -16,25 +16,28 @@ let package = Package(
     targets: [
         // Sources
         Target(name: "Engine"),
+        Target(name: "Generator", dependencies: ["Engine"]),
 
         Target(name: "Blocks", dependencies: ["Engine"]),
         Target(name: "Markup", dependencies: ["Engine"]),
         Target(name: "Elements", dependencies: ["Engine"]),
 
         Target(name: "GainText",
-            dependencies: ["Engine", "Blocks", "Markup", "Elements"]),
+            dependencies: ["Engine", "Generator", "Blocks", "Markup", "Elements"]),
 
-        Target(name: "gain", dependencies: ["Engine", "GainText"]),
+        Target(name: "gain", dependencies: ["Engine", "GainText", "Generator"]),
 
         // Tests
         Target(name: "EngineTests", dependencies: ["GainText"]),
+        Target(name: "GeneratorTests", dependencies: ["GainText"]),
 
         Target(name: "BlocksTests", dependencies: ["GainText"]),
-        Target(name: "MarkupTests", dependencies: ["GainText"])
+        Target(name: "MarkupTests", dependencies: ["GainText"]),
 //        Target(name: "ElementsTests", dependencies: ["EngineTests", "GainText"]),
     ],
     dependencies: [
         .Package(url: "https://github.com/Quick/Nimble", majorVersion: 6),
-        .Package(url: "https://github.com/thoughtbot/Runes", majorVersion: 4)
+        .Package(url: "https://github.com/thoughtbot/Runes", majorVersion: 4),
+        .Package(url: "https://github.com/iabudiab/HTMLKit", majorVersion: 2),
     ]
 )

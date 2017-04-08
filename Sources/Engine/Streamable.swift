@@ -57,26 +57,12 @@ private func _write<Target: TextOutputStream>(escaped string: String, to s: inou
 }
 
 
-extension NodeAttribute: TextOutputStreamable {
-    public func write<Target : TextOutputStream>(to target: inout Target) {
-        switch self {
-        case .bool(let name):
-            target.write(" \(name)")
-        case .number(let name, let value):
-            target.write(" \(name)=\(value)")
-        case .text(let name, let value):
-            // TBD: escape string
-            target.write(" \(name)=\"\(value)\"")
-        }
-    }
-}
-
 extension Node: HTMLStreamable {
     public func write<Target: TextOutputStream>(to target: inout Target, indent level: Int) {
         _write(indentation: level, to: &target)
         target.write("<\(nodeType.name) start=\"\(range.start.right)\" end=\"\(range.end.left)\"")
-        for attribute in attributes {
-            attribute.write(to: &target)
+        for (key, value) in attributes {
+            target.write(" \(key)='\(value)'")
         }
         target.write(">\n")
         if children.isEmpty {
@@ -91,31 +77,5 @@ extension Node: HTMLStreamable {
         }
         _write(indentation: level, to: &target)
         target.write("</\(nodeType.name)>\n")
-    }
-}
-
-extension ASTNode: HTMLStreamable {
-    public func write<Target : TextOutputStream>(to target: inout Target, indent level: Int) {
-        switch self {
-        case .element(let tag, let attributes, let children):
-            _write(indentation: level, to: &target)
-            target.write("<\(tag.name)")
-            for attribute in attributes {
-                attribute.write(to: &target)
-            }
-            target.write(">\n")
-            for child in children {
-                child.write(to: &target, indent: level + 1)
-            }
-            _write(indentation: level, to: &target)
-            target.write("</\(tag.name)>\n")
-        case .text(let text):
-            _write(escaped: text, to: &target)
-        case .comment(let text):
-            // TBD: escape --> ?
-            target.write("<!-- $\(text) -->")
-        case .pi(let text):
-            target.write("<!$\(text)!>")
-        }
     }
 }

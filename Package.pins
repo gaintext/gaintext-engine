@@ -2,6 +2,12 @@
   "autoPin": true,
   "pins": [
     {
+      "package": "HTMLKit",
+      "reason": null,
+      "repositoryURL": "https://github.com/iabudiab/HTMLKit",
+      "version": "2.0.4"
+    },
+    {
       "package": "Nimble",
       "reason": null,
       "repositoryURL": "https://github.com/Quick/Nimble",

@@ -12,15 +12,19 @@ import Engine
 import Runes
 
 
+
+private let indentedLines =
+    whitespace >>- prefixedLines
+
 /// Parser for one element with indented content.
 ///
 /// Consumes the title line and any following indented lines.
 /// The indented part will be parsed as a new block containing the
 /// content of the new element.
-public let elementWithIndentedContent = element(
+let elementWithIndentedContent = element(
     elementStartBlockParser *> elementTitleLine *>
     endOfLine *>
-    optional(indentationParser, otherwise: []) >>- elementBodyBlock
+    optional(skipEmptyLines *> indentedLines, otherwise: []) >>- elementBodyBlock
 )
 
 /// Parser producing an error node spanning the whole line.

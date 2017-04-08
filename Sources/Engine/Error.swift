@@ -25,18 +25,17 @@ public enum ParserError: Error {
 
 /// Block created when a parser matches but finds an error in the input.
 public class ErrorNodeType: NodeType {
-    public let name = "error"
-
     public init(_ message: String) {
         self.message = message
+        super.init(name: "error")
     }
 
-    func prepare(_ node: Node) {
-        print("error: \(message): \(node)")
+    public func describe(_ node: Node) -> String {
+        return "error \(node.sourceRange): \(message)"
     }
-    // TBD
-    public func constructAST(_ node: Node) -> ASTNode {
-        return .comment("error: \(message)")
+
+    override open func prepare(_ node: Node, _ scope: Scope) {
+        print(describe(node))
     }
 
     let message: String

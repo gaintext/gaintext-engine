@@ -11,16 +11,18 @@
 import Engine
 import Blocks
 import Markup
+import Generator
 import Runes
 
 private let blockParser = list(
-    titledContent <|> elementBlockParser <|> lineDelimitedContent <|> paragraph,
+    listParser <|> titledContent <|> elementBlockParser <|> lineDelimitedContent <|>
+    quotedBlock <|> paragraph,
     separator: skipEmptyLines
 )
 
 
 private let spanParser = textWithMarkupParser(markup: cached(
-    escaped <|> spanWithBrackets <|> spanWithDelimiters
+    escaped <|> htmlEntity <|> spanWithBrackets <|> spanWithDelimiters
 ))
 
 
@@ -28,19 +30,22 @@ private func registerElements(global scope: Scope) {
     let blockElements = [
 //        ImportElementType(),
 //        DefinitionElementType(),
-        ElementType("p", body: list(lineParser)),
+        ElementType("p", body: list(textLine)),
         ElementType("section"),
         ElementType("example"),
-        ElementType("math"),
+        ElementType("math-block"),
+        ElementType("blockquote"),
+        elementLI,
+        elementUL,
         ElementType("table"),
         ElementType("TBD"),
-        ElementType("code", body: list(codeLine))
+        ElementType("code-block", body: list(codeLine))
     ]
     for element in blockElements {
         scope.register(block: element)
     }
-    scope.register(block: "code", alias: "block:`")
-    scope.register(block: "math", alias: "block:$")
+    scope.register(block: "code-block", alias: "block:`")
+    scope.register(block: "math-block", alias: "block:$")
 
     let markupElements = [
         ElementType("TBD"),
@@ -53,6 +58,7 @@ private func registerElements(global scope: Scope) {
         scope.register(markup: element)
     }
     scope.register(markup: "em", alias: "span:*")
+    scope.register(markup: "em", alias: "span:_")
     scope.register(markup: "code", alias: "span:`")
     scope.register(markup: "math", alias: "span:$")
     scope.register(markup: "raw", alias: "span:~")

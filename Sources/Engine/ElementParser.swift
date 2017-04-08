@@ -56,10 +56,10 @@ public let elementStartMarkupParser = (identifier >>- elementCreateMarkupParser)
     attributesFollowedByColon <* optional(whitespace)
 
 /// Parser adding the specified attribute to the currently parsed element.
-public func elementNodeAttribute(_ attr: NodeAttribute) -> Parser<()> {
+public func elementNodeAttribute(_ key: String, value: String) -> Parser<()> {
     return Parser { input in
         let element = input.scope.element!
-        element.addNodeAttribute(attr)
+        element.addNodeAttribute(key, value: value)
         return ((), input)
     }
 }
@@ -95,7 +95,7 @@ private let bracedAttributes: Parser<[Node]> = satisfying {$0.atStartOfWord} *>
     optional(whitespace) *> satisfying {$0.atEndOfLine} *> pure([])
 private let optionalAttributes = atEndOfLine <|> optional(whitespace) *> elementAttributes(bracedAttributes)
 private let titleWithOptionalAttributes = elementTitleParser <*> pure(optionalAttributes)
-private let titleNodeType = ElementNodeType(name: "title")
+private let titleNodeType = ElementNodeType(name: "gaintext-title")
 private let titleNode = node(type: titleNodeType) <^> titleWithOptionalAttributes
 
 /// Parser which parses an element title.

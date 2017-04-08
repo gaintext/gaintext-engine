@@ -50,13 +50,13 @@ class IndentedContentTests: XCTestCase {
         expect(node.children).to(haveCount(1))
 
         let title = node.children[0]
-        expect(title.nodeType.name) == "title"
+        expect(title.nodeType.name) == "gaintext-title"
         expect(title.sourceContent) == "title"
 
         expect(cursor.atEndOfBlock) == true
     }
 
-    func testContent() throws {
+    func testContent1() throws {
         let doc = Document(source: "test: title\n content\n")
         doc.global.register(block: ElementType("test"))
         let p = elementWithIndentedContent
@@ -71,7 +71,32 @@ class IndentedContentTests: XCTestCase {
         expect(node.children).to(haveCount(2))
 
         let title = node.children[0]
-        expect(title.nodeType.name) == "title"
+        expect(title.nodeType.name) == "gaintext-title"
+        expect(title.sourceContent) == "title"
+
+        let content = node.children[1]
+        expect(content.nodeType.name) == "p"
+        expect(content.sourceContent) == "content"
+
+        expect(cursor.atEndOfBlock) == true
+    }
+
+    func testContent2() throws {
+        let doc = Document(source: "test: title\n\n content\n")
+        doc.global.register(block: ElementType("test"))
+        let p = elementWithIndentedContent
+
+        let (nodes, cursor) = try parse(p, doc)
+        expect(nodes).to(haveCount(1))
+        let node = nodes[0]
+
+        expect(node.document) == doc
+        expect(node.sourceRange) == "1:1..3:8"
+        expect(node.nodeType.name) == "test"
+        expect(node.children).to(haveCount(2))
+
+        let title = node.children[0]
+        expect(title.nodeType.name) == "gaintext-title"
         expect(title.sourceContent) == "title"
 
         let content = node.children[1]
@@ -97,9 +122,9 @@ class IndentedContentTests: XCTestCase {
         expect(attr.nodeType.name) == "attribute"
         expect(attr.children).to(haveCount(2))
         expect(attr.children[0].nodeType.name) == "attribute-key"
-        expect(attr.children[0].attributes) == [.text("name", "id")]
+        expect(attr.children[0].attributes["name"]) == "id"
         expect(attr.children[1].nodeType.name) == "attribute-value"
-        expect(attr.children[1].attributes) == [.text("value", "name")]
+        expect(attr.children[1].attributes["value"]) == "name"
 
         expect(tail.atEndOfBlock) == true
     }
@@ -120,9 +145,9 @@ class IndentedContentTests: XCTestCase {
         expect(attr.nodeType.name) == "attribute"
         expect(attr.children).to(haveCount(2))
         expect(attr.children[0].nodeType.name) == "attribute-key"
-        expect(attr.children[0].attributes) == [.text("name", "id")]
+        expect(attr.children[0].attributes["name"]) == "id"
         expect(attr.children[1].nodeType.name) == "attribute-value"
-        expect(attr.children[1].attributes) == [.text("value", "name")]
+        expect(attr.children[1].attributes["value"]) == "name"
 
         expect(tail.atEndOfBlock) == true
     }
@@ -143,9 +168,9 @@ class IndentedContentTests: XCTestCase {
         expect(attr.nodeType.name) == "attribute"
         expect(attr.children).to(haveCount(2))
         expect(attr.children[0].nodeType.name) == "attribute-key"
-        expect(attr.children[0].attributes) == [.text("name", "class")]
+        expect(attr.children[0].attributes["name"]) == "class"
         expect(attr.children[1].nodeType.name) == "attribute-value"
-        expect(attr.children[1].attributes) == [.text("value", "name")]
+        expect(attr.children[1].attributes["value"]) == "name"
 
         expect(tail.atEndOfBlock) == true
     }
@@ -166,9 +191,9 @@ class IndentedContentTests: XCTestCase {
         expect(attr.nodeType.name) == "attribute"
         expect(attr.children).to(haveCount(2))
         expect(attr.children[0].nodeType.name) == "attribute-key"
-        expect(attr.children[0].attributes) == [.text("name", "class")]
+        expect(attr.children[0].attributes["name"]) == "class"
         expect(attr.children[1].nodeType.name) == "attribute-value"
-        expect(attr.children[1].attributes) == [.text("value", "name")]
+        expect(attr.children[1].attributes["value"]) == "name"
 
         expect(tail.atEndOfBlock) == true
     }
@@ -186,20 +211,20 @@ class IndentedContentTests: XCTestCase {
         expect(node.children).to(haveCount(4))
 
         let title = node.children[0]
-        expect(title.nodeType.name) == "title"
+        expect(title.nodeType.name) == "gaintext-title"
         expect(title.sourceContent) == "title text"
 
         let id = node.children[1]
         expect(id.nodeType.name) == "attribute"
         expect(id.children).to(haveCount(2))
-        expect(id.children[0].attributes) == [.text("name", "id")]
-        expect(id.children[1].attributes) == [.text("value", "name")]
+        expect(id.children[0].attributes["name"]) == "id"
+        expect(id.children[1].attributes["value"]) == "name"
 
         let attr = node.children[2]
         expect(attr.nodeType.name) == "attribute"
         expect(attr.children).to(haveCount(2))
-        expect(attr.children[0].attributes) == [.text("name", "x")]
-        expect(attr.children[1].attributes) == [.text("value", "y")]
+        expect(attr.children[0].attributes["name"]) == "x"
+        expect(attr.children[1].attributes["value"]) == "y"
 
         let content = node.children[3]
         expect(content.nodeType.name) == "p"
@@ -221,7 +246,7 @@ class IndentedContentTests: XCTestCase {
         expect(node.children).to(haveCount(4))
 
         let title = node.children[0]
-        expect(title.nodeType.name) == "title"
+        expect(title.nodeType.name) == "gaintext-title"
         expect(title.children).to(haveCount(1))
         expect(title.children[0].nodeType.name) == "text"
         expect(title.children[0].sourceContent) == "title text"
@@ -229,14 +254,14 @@ class IndentedContentTests: XCTestCase {
         let id = node.children[1]
         expect(id.nodeType.name) == "attribute"
         expect(id.children).to(haveCount(2))
-        expect(id.children[0].attributes) == [.text("name", "id")]
-        expect(id.children[1].attributes) == [.text("value", "name")]
+        expect(id.children[0].attributes["name"]) == "id"
+        expect(id.children[1].attributes["value"]) == "name"
 
         let attr = node.children[2]
         expect(attr.nodeType.name) == "attribute"
         expect(attr.children).to(haveCount(2))
-        expect(attr.children[0].attributes) == [.text("name", "x")]
-        expect(attr.children[1].attributes) == [.text("value", "y")]
+        expect(attr.children[0].attributes["name"]) == "x"
+        expect(attr.children[1].attributes["value"]) == "y"
 
         let content = node.children[3]
         expect(content.nodeType.name) == "p"
@@ -258,7 +283,7 @@ class IndentedContentTests: XCTestCase {
         expect(node.children).to(haveCount(4))
 
         let title = node.children[0]
-        expect(title.nodeType.name) == "title"
+        expect(title.nodeType.name) == "gaintext-title"
         expect(title.children).to(haveCount(1))
         expect(title.children[0].nodeType.name) == "text"
         expect(title.children[0].sourceContent) == "title text"
@@ -266,14 +291,14 @@ class IndentedContentTests: XCTestCase {
         let id = node.children[1]
         expect(id.nodeType.name) == "attribute"
         expect(id.children).to(haveCount(2))
-        expect(id.children[0].attributes) == [.text("name", "id")]
-        expect(id.children[1].attributes) == [.text("value", "name")]
+        expect(id.children[0].attributes["name"]) == "id"
+        expect(id.children[1].attributes["value"]) == "name"
 
         let attr = node.children[2]
         expect(attr.nodeType.name) == "attribute"
         expect(attr.children).to(haveCount(2))
-        expect(attr.children[0].attributes) == [.text("name", "x")]
-        expect(attr.children[1].attributes) == [.text("value", "y")]
+        expect(attr.children[0].attributes["name"]) == "x"
+        expect(attr.children[1].attributes["value"]) == "y"
 
         let content = node.children[3]
         expect(content.nodeType.name) == "p"
@@ -286,7 +311,8 @@ class IndentedContentTests: XCTestCase {
         return [
             ("testSimple", testSimple),
             ("testTitle", testTitle),
-            ("testContent", testContent),
+            ("testContent1", testContent1),
+            ("testContent2", testContent2),
             ("testId1", testId1),
             ("testId2", testId2),
             ("testClass1", testClass1),

@@ -19,13 +19,13 @@ func node(type: NodeType, attr: String, _ content: Parser<String>) -> Parser<[No
         let start = input.position
         let (value, end) = try content.parse(input)
         let node = Node(start: start, end: end, nodeType: type,
-                        attributes: [.text(attr, value)])
+                        attributes: [attr: value])
         return ([node], end)
     }
 }
 
 /// Create a node parser which wraps content into a new parent node.
-public func node(type: NodeType, _ content: Parser<[Node]>) -> Parser<[Node]> {
+public func node(_ type: NodeType, content: Parser<[Node]>) -> Parser<[Node]> {
     return Parser { input in
         let start = input.position
         let (children, end) = try content.parse(input)
@@ -34,6 +34,7 @@ public func node(type: NodeType, _ content: Parser<[Node]>) -> Parser<[Node]> {
         return ([node], end)
     }
 }
+
 /// Wrap some nodes in new parent node.
 ///
 /// Returns a function which transforms a parser into a new parser
@@ -55,28 +56,15 @@ public func node(type: NodeType, keepEmpty: Bool = false) -> (Parser<[Node]>) ->
     }
 }
 
-private class TextNodeType: NodeType {
-    let name = "text"
-    func constructAST(_ node: Node) -> ASTNode {
-        return .text(node.sourceContent)
-    }
-}
-private let textNodeType = TextNodeType()
+private let textNodeType = NodeType(name: "text")
 
-private class CodeNodeType: NodeType {
-    let name = "code-text"
-    func constructAST(_ node: Node) -> ASTNode {
-        return .text(node.sourceContent)
-    }
-}
-private let codeNodeType = CodeNodeType()
-
+/// Helper to create a text node
 public func textNode(start: Position, end: Cursor) -> Node {
     return Node(start: start, end: end, nodeType: textNodeType)
 }
 
 /// Parser wrapping the result of another parser in one text node.
-public func textNode<Content>(_ content: Parser<Content>, type: NodeType = textNodeType) -> Parser<[Node]> {
+public func textNode<Content>(spanning content: Parser<Content>, type: NodeType = textNodeType) -> Parser<[Node]> {
     return Parser { input in
         let start = input.position
         let (_, end) = try content.parse(input)
@@ -85,5 +73,10 @@ public func textNode<Content>(_ content: Parser<Content>, type: NodeType = textN
     }
 }
 
+private let lineNodeType = NodeType(name: "line")
+
+/// Parser for one line of text.
+public let textLine = node(lineNodeType, content: lineParser) <* advanceLine
+
 /// Parser for one line of code.
-public let codeLine = textNode(wholeLine, type: codeNodeType) <* advanceLine
+public let codeLine = node(lineNodeType, content: textNode(spanning: wholeLine)) <* advanceLine

@@ -62,7 +62,7 @@ public let lineDelimitedContent =
             literal(delimiter) *>
             optional(elementContent(attributesParser(literal(":")*>pure(())))) *>
             optional(whitespace) *> elementTitleLine *> endOfLine *>
-            elementNodeAttribute(.text("delimiter", String(delimiter))) *>
+            elementNodeAttribute("delimiter", value: String(delimiter)) *>
             contentLines(until: delimiter) >>- elementBodyBlock
         )
     }

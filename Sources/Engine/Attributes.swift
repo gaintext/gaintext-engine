@@ -10,6 +10,14 @@
 
 import Runes
 
+// Attributes are always encoded with three nodes:
+// * one "attribute" Node acting as parent for the following
+// * one "attribute-key" Node with a "name" NodeAttribute
+// * one "attribute-value" Node with a "value" NodeAttribute
+private let attrNodeType = NodeType(name: "attribute")
+private let attrKeyType = NodeType(name: "attribute-key")
+private let attrValueType = NodeType(name: "attribute-value")
+
 
 private var attributeKV: Parser<[Node]> {
     let key = identifier
@@ -29,16 +37,12 @@ private var attributeClass: Parser<[Node]> {
 }
 private var attribute: Parser<[Node]> {
     let p = attributeID <|> attributeClass <|> attributeKV
-    return node(type: attrNodeType, p)
+    return node(attrNodeType, content: p)
 }
 
 public var attributes: Parser<[Node]> {
     return list(attribute, separator: whitespace)
 }
-
-private let attrNodeType = ElementNodeType(name: "attribute")
-private let attrKeyType = ElementNodeType(name: "attribute-key")
-private let attrValueType = ElementNodeType(name: "attribute-value")
 
 
 // TBD: endMarker can be swallowed by attribute: {a=b} tries to assign b} to a
