@@ -76,7 +76,6 @@ open class Element {
         finish(node)
         return node
     }
-    private static let titleNodeType = ElementNodeType(name: "title")
 
     // TBD: replace NodeType.prepare?
     open func finish(_ node: Node) {

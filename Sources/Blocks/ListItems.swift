@@ -16,7 +16,11 @@ private let prefix = oneOf("-*•◦") <+> whitespace
 
 private let contentLines = prefix *> prefixedLines(prefix: "  ")
 
-let listItem = lookahead(prefix) *> element(
+/// Parser for one single list item.
+///
+/// Consumes one line with a list item prefix (-,*,•,◦)
+/// and all following indented lines.
+public let listItem = lookahead(prefix) *> element(
     elementCreateBlockParser(name: "li") *>
         contentLines >>- subBlock(elementBody)
 )
@@ -26,6 +30,8 @@ private func possiblyIndented<T>(_ p: Parser<T>) -> Parser<T> {
 }
 
 private let listTrigger = lookahead(optional(whitespace) *> prefix)
+
+/// Parser for a list
 public let listParser = listTrigger *> element(
     elementCreateBlockParser(name: "ul") *>
     possiblyIndented(elementBody)

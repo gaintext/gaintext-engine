@@ -97,11 +97,12 @@ class HtmlTests: XCTestCase {
             "  city: Nuremberg\n" +
             "  country: Germany\n")
         doc.global.register(block: ElementType("author"))
-        let nodes = doc.parse()
+        doc.global.register(block: ElementType("city"))
+        doc.global.register(block: ElementType("country"))
+        let html = doc.parseHTML()
 
-        expect(nodes).to(haveCount(1))
-
-        expect(nodes[0].nodeType.name) == "author"
+        expect(html.querySelector("author")?.innerHTML) ==
+            "Martin Waitz\n<city>Nuremberg\n</city><country>Germany\n</country>"
     }
 
     func testStructuredText() throws {
@@ -126,14 +127,12 @@ class HtmlTests: XCTestCase {
         doc.global.register(block: ElementType("abstract"))
         doc.global.register(block: ElementType("figure"))
 
-        let nodes = doc.parse()
+        let html = doc.parseHTML()
 
-        expect(nodes).to(haveCount(4))
-
-        expect(nodes[0].nodeType.name) == "title"
-        expect(nodes[1].nodeType.name) == "author"
-        expect(nodes[2].nodeType.name) == "abstract"
-        expect(nodes[3].nodeType.name) == "section"
+        expect(html.querySelector("abstract")?.innerHTML) ==
+            "<p>This is a small example which shows some <em>GainText</em> features.\n</p>"
+        expect(html.querySelector("section h1")?.innerHTML) ==
+        "Chapter 1"
     }
 
     func testEntities1() throws {
