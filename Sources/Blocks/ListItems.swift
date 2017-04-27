@@ -36,6 +36,3 @@ public let listParser = listTrigger *> element(
     elementCreateBlockParser(name: "ul") *>
     possiblyIndented(elementBody)
 ) <* skipEmptyLines
-
-public let elementUL = ElementType("ul", body: list(listItem, separator: skipEmptyLines))
-public let elementLI = ElementType("li")

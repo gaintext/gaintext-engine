@@ -14,12 +14,12 @@ import Markup
 import Generator
 import Runes
 
+
 private let blockParser = list(
     listParser <|> titledContent <|> elementBlockParser <|> lineDelimitedContent <|>
     quotedBlock <|> paragraph,
     separator: skipEmptyLines
 )
-
 
 private let spanParser = textWithMarkupParser(markup: cached(
     escaped <|> htmlEntity <|> spanWithBrackets <|> spanWithDelimiters
@@ -27,33 +27,12 @@ private let spanParser = textWithMarkupParser(markup: cached(
 
 
 private func registerElements(global scope: Scope) {
-    let blockElements = [
-//        ImportElementType(),
-//        DefinitionElementType(),
-        ElementType("p", body: list(textLine)),
-        ElementType("section"),
-        ElementType("example"),
-        ElementType("math-block"),
-        ElementType("blockquote"),
-        elementLI,
-        elementUL,
-        ElementType("table"),
-        ElementType("TBD"),
-        ElementType("code-block", body: list(codeLine))
-    ]
     for element in blockElements {
         scope.register(block: element)
     }
     scope.register(block: "code-block", alias: "block:`")
     scope.register(block: "math-block", alias: "block:$")
 
-    let markupElements = [
-        ElementType("TBD"),
-        ElementType("em"),
-        ElementType("math"),
-        ElementType("code", title: rawTextParser),
-        ElementType("raw", title: rawTextParser)
-    ]
     for element in markupElements {
         scope.register(markup: element)
     }
