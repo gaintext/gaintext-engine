@@ -83,17 +83,17 @@ open class Element {
 }
 
 let elementBodyParser = Parser<Parser<[Node]>> { input in
-    let element = input.scope.element!
+    let element = input.element!
     return (element.blockParser, input)
 }
 
 let elementTitleParser = Parser<(Parser<()>) -> Parser<[Node]>> { input in
-    let element = input.scope.element!
+    let element = input.element!
     return (element.titleParser, input)
 }
 
 let elementSpanParser = Parser<(Parser<()>) -> Parser<[Node]>> { input in
-    let element = input.scope.element!
+    let element = input.element!
     return (element.spanParser, input)
 }
 
@@ -194,13 +194,11 @@ open class Scope {
     public init(blockRegistry: ElementRegistry,
                 markupRegistry: ElementRegistry,
                 blockParser: Parser<[Node]>,
-                spanParser: @escaping SpanParser,
-                element: Element? = nil) {
+                spanParser: @escaping SpanParser) {
         self.blockRegistry = blockRegistry
         self.markupRegistry = markupRegistry
         self.blockParser = blockParser
         self.spanParser = spanParser
-        self.element = element
     }
 
     /// Create a `Element` instance which can be used to
@@ -238,9 +236,6 @@ open class Scope {
 
     let blockParser: Parser<[Node]>
     let spanParser: SpanParser
-
-    /// the element which is currently being parsed
-    var element: Element? = nil
 }
 
 extension Scope {
@@ -249,8 +244,7 @@ extension Scope {
             blockRegistry: ElementRegistry(parent: scope.blockRegistry, template: template.block),
             markupRegistry: ElementRegistry(parent: scope.markupRegistry, template: template.markup),
             blockParser: scope.blockParser,
-            spanParser: scope.spanParser,
-            element: scope.element
+            spanParser: scope.spanParser
         )
     }
 }

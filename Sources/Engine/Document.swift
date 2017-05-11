@@ -31,7 +31,7 @@ public class Document: ObjectIdentity {
     public let global: Scope
 
     func start() -> Cursor {
-        return Cursor(at: block, scope: global)
+        return Cursor(at: block, scope: global, element: nil)
     }
 
     var root: Node?
@@ -57,7 +57,7 @@ extension Document {
     }
 
     fileprivate func createRootBlock() -> Block {
-        var primordial = Cursor(at: primordialBlock(), scope: global)
+        var primordial = Cursor(at: primordialBlock(), scope: global, element: nil)
         var lines: [Line] = []
         var lineStart = primordial.position
         var lineEnd = lineStart

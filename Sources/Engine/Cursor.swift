@@ -49,23 +49,25 @@ public class Block: ObjectIdentity {
 public struct Cursor {
     public var position: Position
     public var scope: Scope
+    public var element: Element?
     let block: Block
     fileprivate var lineIndex: Int
     fileprivate var startOfWord: Bool
 
-    init(at block: Block, scope: Scope) {
+    init(at block: Block, scope: Scope, element: Element?) {
         self.block = block
         self.lineIndex = block.lines.startIndex
         self.position = Position(at: block)
         self.scope = scope
         self.startOfWord = true
+        self.element = element
     }
 }
 
 extension Cursor {
     init(block lines: [Line], parent cursor: Cursor) {
         let block = Block(document: cursor.document, lines: lines)
-        self.init(at: block, scope: cursor.scope)
+        self.init(at: block, scope: cursor.scope, element: cursor.element)
     }
 }
 
