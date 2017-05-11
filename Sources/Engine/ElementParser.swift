@@ -111,6 +111,7 @@ public func elementContent(_ p: Parser<[Node]>) -> Parser<()> {
     return Parser { input in
         let element = input.element!
         let (content, tail) = try p.parse(input)
+        assert(tail.element === element)
         element.body += content
         return ((), tail)
     }
@@ -135,7 +136,9 @@ public func subBlock<Result>(_ p: Parser<Result>) -> ([Line]) -> Parser<Result> 
         Parser<Result> { outside in
             let element = outside.element!
             let inside = element.childCursor(block: lines, parent: outside)
+            assert(inside.element === element)
             let (result, tail) = try p.parse(inside)
+            assert(tail.element === element)
             // content parser has to consume the complete block
             assert(tail.atEndOfBlock)
             return (result, outside)
