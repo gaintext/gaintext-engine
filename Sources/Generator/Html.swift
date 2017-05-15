@@ -61,6 +61,8 @@ func generateHTML(for node: Node, to element: HTMLElement) {
         element.append(pre)
         pre.append(code)
         generateHTML(for: node.children, to: code)
+    case "define":
+        break;
     case "section":
         let section = HTMLElement(tagName: "section")
         element.append(section)

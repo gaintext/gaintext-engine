@@ -33,7 +33,7 @@ let package = Package(
 
         Target(name: "BlocksTests", dependencies: ["GainText"]),
         Target(name: "MarkupTests", dependencies: ["GainText"]),
-//        Target(name: "ElementsTests", dependencies: ["EngineTests", "GainText"]),
+        Target(name: "ElementTests", dependencies: ["EngineTests", "GainText"]),
     ],
     dependencies: [
         .Package(url: "https://github.com/Quick/Nimble", majorVersion: 6),

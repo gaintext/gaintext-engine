@@ -25,25 +25,22 @@ class DefinitionElement: Element {
     }
 
     override func finish(_ node: Node) {
-        print("define: \(node)")
         guard title.count > 0 else {
             // TBD: throw?
-            print("error: nothing to define")
-            return
+            fatalError("error: nothing to define")
         }
         let name = title[0].sourceContent
 
-        print("defining new element '\(name)'")
         let customType = CustomElementType(name: name)
         scope.register(block: customType)
     }
 }
 
-class DefinitionElementType: ElementType {
+public class DefinitionElementType: ElementType {
     public init() {
         super.init("define", type: ElementNodeType(name: "define"))
     }
-    override func element(in scope: Scope) -> Element {
+    public override func element(in scope: Scope) -> Element {
         return DefinitionElement(type: self, scope: scope)
     }
 }

@@ -70,9 +70,10 @@ open class Element {
 
     /// Create the `Node` for this element.
     public func createNode(start: Position, end: Cursor) -> Node {
-        let node = Node(start: start, end: end, nodeType: type.nodeType,
-                           attributes: nodeAttributes,
-                           children: title + attributes + body)
+        let node = Node(start: start, end: end,
+                        nodeType: type.nodeType,
+                        attributes: nodeAttributes,
+                        children: title + attributes + body)
         finish(node)
         return node
     }

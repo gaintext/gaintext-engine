@@ -10,6 +10,7 @@
 
 import Engine
 import Blocks
+import Elements
 
 
 let blockCode = ElementType("code-block", body:
@@ -51,4 +52,6 @@ let blockElements = [
     blockTable,
     blockTBD,
     blockUL,
+
+    DefinitionElementType(),
 ]
