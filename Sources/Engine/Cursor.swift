@@ -53,21 +53,23 @@ public struct Cursor {
     let block: Block
     fileprivate var lineIndex: Int
     fileprivate var startOfWord: Bool
+    let level: Int
 
-    init(at block: Block, scope: Scope, element: Element?) {
+    init(at block: Block, scope: Scope, element: Element?, level: Int = 0) {
         self.block = block
         self.lineIndex = block.lines.startIndex
         self.position = Position(at: block)
         self.scope = scope
         self.startOfWord = true
         self.element = element
+        self.level = level
     }
 }
 
 extension Cursor {
     init(block lines: [Line], parent cursor: Cursor) {
         let block = Block(document: cursor.document, lines: lines)
-        self.init(at: block, scope: cursor.scope, element: cursor.element)
+        self.init(at: block, scope: cursor.scope, element: cursor.element, level: cursor.level + 1)
     }
 }
 

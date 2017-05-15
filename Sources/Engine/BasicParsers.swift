@@ -243,19 +243,21 @@ public let skipEmptyLines = Parser<()> { input in
 /// Debugging Parser which prints the current position.
 public func debug(msg: String, file: StaticString = #file, line: Int = #line) -> Parser<()> {
     return Parser { input in
-        debugPrint("\(file):\(line): debug(\(input.position.right)) \(msg)")
+        let fileName = String(file.description.characters.split(separator: "/").last!)
+        print("\(input.level) \(fileName):\(line): debug(\(input.position.right)) \(msg)")
         return ((), input)
     }
 }
 /// Debugging Parser which wraps any parser and prints its result.
 public func debug<Result>(_ p: Parser<Result>, file: StaticString = #file, line: Int = #line) -> Parser<Result> {
     return Parser { input in
+        let fileName = String(file.description.characters.split(separator: "/").last!)
         do {
             let (result, tail) = try p.parse(input)
-            debugPrint("\(file):\(line): debug(\(input.position.right)..\(tail.position.left)) parsed '\(result)'")
+            print("\(input.level) \(fileName):\(line): debug(\(input.position.right)..\(tail.position.left)) parsed '\(result)'")
             return (result, tail)
         } catch let e as ParserError {
-            debugPrint("\(file):\(line): debug(\(input.position.right)..) raised '\(e)'")
+            print("\(input.level) \(fileName):\(line): debug(\(input.position.right)..) raised '\(e)'")
             throw e
         }
     }
