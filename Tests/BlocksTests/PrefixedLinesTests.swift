@@ -20,7 +20,7 @@ import Nimble
 class PrefixedLinesTests: XCTestCase {
 
     func testSuccess() throws {
-        let doc = Document(source: "  a\n  b\n")
+        let doc = simpleDocument("  a\n  b\n")
         let indented = whitespace >>- prefixedLines
         let (lines, cursor) = try parse(indented, doc)
         expect(lines).to(haveCount(2))

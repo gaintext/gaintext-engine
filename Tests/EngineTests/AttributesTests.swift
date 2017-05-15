@@ -18,7 +18,7 @@ import Nimble
 class AttributeTests: XCTestCase {
 
     func testId() throws {
-        let doc = Document(source: "#id: stop")
+        let doc = simpleDocument("#id: stop")
         let p = attributesParser
         let endMarker = literal(":") *> pure(())
 
@@ -39,7 +39,7 @@ class AttributeTests: XCTestCase {
     }
 
     func testClass() throws {
-        let doc = Document(source: ".class: stop")
+        let doc = simpleDocument(".class: stop")
         let p = attributesParser
         let endMarker = literal(":") *> pure(())
 
@@ -60,7 +60,7 @@ class AttributeTests: XCTestCase {
     }
 
     func testQuoted1() throws {
-        let doc = Document(source: "key=\"value\": stop")
+        let doc = simpleDocument("key=\"value\": stop")
         let p = attributesParser
         let endMarker = literal(":") *> pure(())
 
@@ -81,7 +81,7 @@ class AttributeTests: XCTestCase {
     }
 
     func testQuoted2() throws {
-        let doc = Document(source: "key=\"a: \\\"b\": stop")
+        let doc = simpleDocument("key=\"a: \\\"b\": stop")
         let p = attributesParser
         let endMarker = literal(":") *> pure(())
 
@@ -102,7 +102,7 @@ class AttributeTests: XCTestCase {
     }
 
     func testValue1() throws {
-        let doc = Document(source: "key=value: stop")
+        let doc = simpleDocument("key=value: stop")
         let p = attributesParser
         let endMarker = literal(":") *> pure(())
 
@@ -123,7 +123,7 @@ class AttributeTests: XCTestCase {
     }
 
     func testMultiple1() throws {
-        let doc = Document(source: ".cls1 .cls2 key=\"value\": stop")
+        let doc = simpleDocument(".cls1 .cls2 key=\"value\": stop")
         let p = attributesParser
         let endMarker = literal(":") *> pure(())
 

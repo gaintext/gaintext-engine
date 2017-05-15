@@ -18,7 +18,7 @@ import Nimble
 class CursorTests: XCTestCase {
 
     func testCursor() throws {
-        let doc = Document(source: "abc\ndef\n")
+        let doc = simpleDocument("abc\ndef\n")
         var cursor = doc.start()
         expect(cursor.atEndOfLine) == false
         expect(cursor.atEndOfBlock) == false

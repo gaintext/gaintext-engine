@@ -43,18 +43,32 @@ private func registerElements(global scope: Scope) {
     scope.register(markup: "raw", alias: "span:~")
 }
 
-extension Document {
+func globalScope() -> Scope {
+    let scope = Scope(blockRegistry: ElementRegistry(),
+                      markupRegistry: ElementRegistry(),
+                      blockParser: blockParser,
+                      spanParser: spanParser)
+    registerElements(global: scope)
 
-    /// Create a Document from some source.
-    ///
-    /// The global scope will already be initialized for GainText parsing.
-    public convenience init(source: String) {
-        let scope = Scope(blockRegistry: ElementRegistry(),
-                          markupRegistry: ElementRegistry(),
-                          blockParser: blockParser,
-                          spanParser: spanParser)
-        registerElements(global: scope)
+    return scope
+}
 
-        self.init(source: source, global: scope)
+extension DocumentLoaderDelegate {
+
+    public func loadRoot(fromFile name: String) throws -> Document {
+        return try load(fromFile: name, scope: globalScope())
     }
+}
+
+// for testing only
+struct SimpleDocumentLoader: DocumentLoaderDelegate {
+    public func load(fromFile: String, scope: Scope) throws -> Document {
+        fatalError()
+    }
+}
+/// Create a simple GainText document.
+///
+/// No additional imports are allowed.
+public func simpleDocument(_ source: String) -> Document {
+    return Document(source: source, global: globalScope(), loader: SimpleDocumentLoader())
 }

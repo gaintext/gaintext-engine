@@ -10,20 +10,11 @@
 
 import Foundation
 import Engine
-import GainText
-import HTMLKit
 
-func main() throws {
-    let name = CommandLine.arguments[1]
+struct DocumentLoader: DocumentLoaderDelegate {
 
-    let loader = DocumentLoader()
-    let doc = try loader.loadRoot(fromFile: name)
-
-    print(doc.parseHTML().innerHTML)
-}
-
-do {
-    try main()
-} catch let e {
-    print("error:", e)
+    func load(fromFile name: String, scope: Scope) throws -> Document {
+        let text = try NSString(contentsOfFile: name, encoding: String.Encoding.utf8.rawValue)
+        return Document(source: String(text), global: scope, loader: self)
+    }
 }

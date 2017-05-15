@@ -20,15 +20,20 @@ extension ObjectIdentity {
     }
 }
 
+public protocol DocumentLoaderDelegate {
+    func load(fromFile: String, scope: Scope) throws -> Document
+}
 
 public class Document: ObjectIdentity {
-    public init(source: String, global: Scope) {
+    public init(source: String, global: Scope, loader: DocumentLoaderDelegate) {
         self.source = source
         self.global = global
+        self.loader = loader
     }
 
     let source: String
     public let global: Scope
+    public let loader: DocumentLoaderDelegate
 
     func start() -> Cursor {
         return Cursor(at: block, scope: global, element: nil)

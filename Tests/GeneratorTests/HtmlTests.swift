@@ -19,7 +19,7 @@ import Nimble
 class HtmlTests: XCTestCase {
 
     func testWritingText() throws {
-        let doc = Document(source:
+        let doc = simpleDocument(
             "Headline\n" +
             "========\n" +
             "\n" +
@@ -36,7 +36,7 @@ class HtmlTests: XCTestCase {
     }
 
     func testParagraph() throws {
-        let doc = Document(source:
+        let doc = simpleDocument(
             "Line one.\n" +
             "Line two.\n")
         let html = doc.parseHTML()
@@ -46,7 +46,7 @@ class HtmlTests: XCTestCase {
     }
 
     func testBlockquote() throws {
-        let doc = Document(source:
+        let doc = simpleDocument(
             "> Line one.\n" +
             "> Line two.\n")
         let html = doc.parseHTML()
@@ -56,7 +56,7 @@ class HtmlTests: XCTestCase {
     }
 
     func testPreformatted() throws {
-        let doc = Document(source:
+        let doc = simpleDocument(
             "```\n" +
             "Line one.\n" +
             " Line two.\n" +
@@ -69,7 +69,7 @@ class HtmlTests: XCTestCase {
     }
 
     func testPreformattedBlockquote() throws {
-        let doc = Document(source:
+        let doc = simpleDocument(
             "> ```\n" +
             "> Line one.\n" +
             ">  Line two.\n" +
@@ -82,7 +82,7 @@ class HtmlTests: XCTestCase {
     }
 
     func testAttributes1() throws {
-        let doc = Document(source: "p .cls1 .cls2 key=\"value\": stop")
+        let doc = simpleDocument("p .cls1 .cls2 key=\"value\": stop")
 
         let html = doc.parseHTML()
         let p = html.body!.firstChild! as! HTMLElement
@@ -92,7 +92,7 @@ class HtmlTests: XCTestCase {
     }
     
     func testStructuredElements() throws {
-        let doc = Document(source:
+        let doc = simpleDocument(
             "author: Martin Waitz\n" +
             "  city: Nuremberg\n" +
             "  country: Germany\n")
@@ -106,7 +106,7 @@ class HtmlTests: XCTestCase {
     }
 
     func testStructuredText() throws {
-        let doc = Document(source:
+        let doc = simpleDocument(
             "title: GainText example\n" +
             "author: Martin Waitz\n" +
             "\n" +
@@ -138,14 +138,14 @@ class HtmlTests: XCTestCase {
     func testEntities1() throws {
         let text = "HTML &amp; entities &lt;html&gt;&lt;/html&gt; elements\n"
 
-        let doc = Document(source: text)
+        let doc = simpleDocument(text)
         let html = doc.parseHTML()
 
         expect(html.querySelector("p")?.innerHTML) == text
     }
 
     func testEntities2() throws {
-        let doc = Document(source: "&mdash; &quot; &#182;\n")
+        let doc = simpleDocument("&mdash; &quot; &#182;\n")
         let html = doc.parseHTML()
 
         expect(html.querySelector("p")?.innerHTML) == "— \" ¶\n"

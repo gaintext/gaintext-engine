@@ -18,7 +18,7 @@ import Nimble
 class ExampleTests: XCTestCase {
 
     func testWritingText() throws {
-        let doc = Document(source:
+        let doc = simpleDocument(
             "Headline\n" +
             "========\n" +
             "\n" +
@@ -55,7 +55,7 @@ class ExampleTests: XCTestCase {
     }
 
     func testStructuredElements() throws {
-        let doc = Document(source:
+        let doc = simpleDocument(
             "author: Martin Waitz\n" +
             "  city: Nuremberg\n" +
             "  country: Germany\n")
@@ -78,7 +78,7 @@ class ExampleTests: XCTestCase {
     }
 
     func testStructuredText() throws {
-        let doc = Document(source:
+        let doc = simpleDocument(
             "title: GainText example\n" +
             "author: Martin Waitz\n" +
             "\n" +

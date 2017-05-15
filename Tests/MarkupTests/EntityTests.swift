@@ -19,42 +19,42 @@ import Nimble
 class EntityTests: XCTestCase {
 
     func testNoAmp() throws {
-        let doc = Document(source: "amp;")
+        let doc = simpleDocument("amp;")
         let p = htmlEntity
 
         expect {try p.parse(doc.start())}.to(throwError())
     }
 
     func testNotComplete() throws {
-        let doc = Document(source: "&amp")
+        let doc = simpleDocument("&amp")
         let p = htmlEntity
 
         expect {try p.parse(doc.start())}.to(throwError())
     }
 
     func testWhitespace1() throws {
-        let doc = Document(source: "& amp;")
+        let doc = simpleDocument("& amp;")
         let p = htmlEntity
 
         expect {try p.parse(doc.start())}.to(throwError())
     }
 
     func testWhitespace2() throws {
-        let doc = Document(source: "&am p;")
+        let doc = simpleDocument("&am p;")
         let p = htmlEntity
 
         expect {try p.parse(doc.start())}.to(throwError())
     }
 
     func testWhitespace3() throws {
-        let doc = Document(source: "&amp ;")
+        let doc = simpleDocument("&amp ;")
         let p = htmlEntity
 
         expect {try p.parse(doc.start())}.to(throwError())
     }
 
     func testPara() throws {
-        let doc = Document(source: "&para;")
+        let doc = simpleDocument("&para;")
         let p = htmlEntity
 
         let (nodes, cursor) = try parse(p, doc)
@@ -68,7 +68,7 @@ class EntityTests: XCTestCase {
     }
 
     func testDecimal() throws {
-        let doc = Document(source: "&#182;")
+        let doc = simpleDocument("&#182;")
         let p = htmlEntity
 
         let (nodes, cursor) = try parse(p, doc)
@@ -82,7 +82,7 @@ class EntityTests: XCTestCase {
     }
 
     func testHexadecimal() throws {
-        let doc = Document(source: "&#x00b6;")
+        let doc = simpleDocument("&#x00b6;")
         let p = htmlEntity
 
         let (nodes, cursor) = try parse(p, doc)

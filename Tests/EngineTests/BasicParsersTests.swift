@@ -18,7 +18,7 @@ import Nimble
 class LiteralCharacterParserTests: XCTestCase {
 
     func testMatch1() throws {
-        let doc = Document(source: "abcdef")
+        let doc = simpleDocument("abcdef")
         let input = doc.start()
         let p = literal(Character("a"))
 
@@ -28,7 +28,7 @@ class LiteralCharacterParserTests: XCTestCase {
     }
 
     func testNoMatch1() throws {
-        let doc = Document(source: "abcdef")
+        let doc = simpleDocument("abcdef")
         let input = doc.start()
         let p = literal(Character("b"))
 
@@ -46,7 +46,7 @@ class LiteralCharacterParserTests: XCTestCase {
 class LiteralStringParserTests: XCTestCase {
 
     func testMatch1() throws {
-        let doc = Document(source: "abcdef")
+        let doc = simpleDocument("abcdef")
         let p = literal("a")
 
         let (res, tail) = try p.parse(doc.start())
@@ -54,7 +54,7 @@ class LiteralStringParserTests: XCTestCase {
         expect(tail.position.left) == "1:1"
     }
     func testMatch2() throws {
-        let doc = Document(source: "abcdef")
+        let doc = simpleDocument("abcdef")
         let p = literal("abc")
 
         let (res, tail) = try p.parse(doc.start())
@@ -62,7 +62,7 @@ class LiteralStringParserTests: XCTestCase {
         expect(tail.position.left) == "1:3"
     }
     func testMatch3() throws {
-        let doc = Document(source: "abcdef")
+        let doc = simpleDocument("abcdef")
         let p = literal("abcdef")
 
         let (res, tail) = try p.parse(doc.start())
@@ -71,14 +71,14 @@ class LiteralStringParserTests: XCTestCase {
     }
 
     func testNoMatch1() throws {
-        let doc = Document(source: "abcdef")
+        let doc = simpleDocument("abcdef")
         let input = doc.start()
         let p = literal("bc")
 
         expect {try p.parse(input)}.to(throwError())
     }
     func testNoMatch2() throws {
-        let doc = Document(source: "abcdef")
+        let doc = simpleDocument("abcdef")
         let input = doc.start()
         let p = literal("abcdefg")
 
@@ -99,14 +99,14 @@ class LiteralStringParserTests: XCTestCase {
 class CollectWhileParserTests: XCTestCase {
 
     func testEmpty1() throws {
-        let doc = Document(source: "bcd")
+        let doc = simpleDocument("bcd")
         let input = doc.start()
         let p = collect(takeWhile: {$0.char == Character("a")})
 
         expect {try p.parse(input)}.to(throwError())
     }
     func testEmpty2() throws {
-        let doc = Document(source: "bcd")
+        let doc = simpleDocument("bcd")
         let input = doc.start()
         let p = collect(min: 0, takeWhile: {$0.char == Character("a")})
 
@@ -116,7 +116,7 @@ class CollectWhileParserTests: XCTestCase {
     }
 
     func test1() throws {
-        let doc = Document(source: "abc")
+        let doc = simpleDocument("abc")
         let input = doc.start()
         let p = collect(takeWhile: {$0.char == Character("a")})
 
@@ -125,7 +125,7 @@ class CollectWhileParserTests: XCTestCase {
         expect(tail.position.left) == "1:1"
     }
     func test2() throws {
-        let doc = Document(source: "aabb")
+        let doc = simpleDocument("aabb")
         let input = doc.start()
         let p = collect(takeWhile: {$0.char == Character("a")})
 
@@ -135,14 +135,14 @@ class CollectWhileParserTests: XCTestCase {
     }
 
     func test3() throws {
-        let doc = Document(source: "abc")
+        let doc = simpleDocument("abc")
         let input = doc.start()
         let p = collect(min: 2, takeWhile: {$0.char == Character("a")})
 
         expect {try p.parse(input)}.to(throwError())
     }
     func test4() throws {
-        let doc = Document(source: "aabb")
+        let doc = simpleDocument("aabb")
         let input = doc.start()
         let p = collect(min: 2, takeWhile: {$0.char == Character("a")})
 
@@ -166,14 +166,14 @@ class CollectWhileParserTests: XCTestCase {
 class CollectUntilParserTests: XCTestCase {
 
     func testEmpty1() throws {
-        let doc = Document(source: "abc")
+        let doc = simpleDocument("abc")
         let input = doc.start()
         let p = collect(until: {$0.char == Character("a")})
 
         expect {try p.parse(input)}.to(throwError())
     }
     func testEmpty2() throws {
-        let doc = Document(source: "abc")
+        let doc = simpleDocument("abc")
         let input = doc.start()
         let p = collect(min: 0, until: {$0.char == Character("a")})
 
@@ -183,7 +183,7 @@ class CollectUntilParserTests: XCTestCase {
     }
 
     func test1() throws {
-        let doc = Document(source: "baba")
+        let doc = simpleDocument("baba")
         let input = doc.start()
         let p = collect(until: {$0.char == Character("a")})
 
@@ -192,7 +192,7 @@ class CollectUntilParserTests: XCTestCase {
         expect(tail.position.left) == "1:1"
     }
     func test2() throws {
-        let doc = Document(source: "cba")
+        let doc = simpleDocument("cba")
         let input = doc.start()
         let p = collect(until: {$0.char == Character("a")})
 
@@ -202,14 +202,14 @@ class CollectUntilParserTests: XCTestCase {
     }
 
     func test3() throws {
-        let doc = Document(source: "baba")
+        let doc = simpleDocument("baba")
         let input = doc.start()
         let p = collect(min: 2, until: {$0.char == Character("a")})
 
         expect {try p.parse(input)}.to(throwError())
     }
     func test4() throws {
-        let doc = Document(source: "cba")
+        let doc = simpleDocument("cba")
         let input = doc.start()
         let p = collect(min: 2, until: {$0.char == Character("a")})
 
@@ -233,7 +233,7 @@ class CollectUntilParserTests: XCTestCase {
 class CharacterParserTests: XCTestCase {
 
     func test1() throws {
-        let doc = Document(source: "a")
+        let doc = simpleDocument("a")
         let input = doc.start()
         let p = character
 
@@ -243,7 +243,7 @@ class CharacterParserTests: XCTestCase {
     }
 
     func test2() throws {
-        let doc = Document(source: "abc")
+        let doc = simpleDocument("abc")
         let input = doc.start()
         let p = character
 
@@ -253,7 +253,7 @@ class CharacterParserTests: XCTestCase {
     }
 
     func test3() throws {
-        let doc = Document(source: "")
+        let doc = simpleDocument("")
         let input = doc.start()
         let p = character
 
@@ -261,7 +261,7 @@ class CharacterParserTests: XCTestCase {
     }
 
     func test4() throws {
-        let doc = Document(source: "\n")
+        let doc = simpleDocument("\n")
         let input = doc.start()
         let p = character
 
@@ -281,7 +281,7 @@ class CharacterParserTests: XCTestCase {
 class IdentifierTests: XCTestCase {
 
     func testIdentifier1() throws {
-        let doc = Document(source: "identifier")
+        let doc = simpleDocument("identifier")
         let p = identifier
 
         let (result, cursor) = try p.parse(doc.start())
@@ -291,7 +291,7 @@ class IdentifierTests: XCTestCase {
     }
 
     func testIdentifier2() throws {
-        let doc = Document(source: "id_2 next")
+        let doc = simpleDocument("id_2 next")
         let p = identifier
 
         let (result, cursor) = try p.parse(doc.start())
@@ -301,7 +301,7 @@ class IdentifierTests: XCTestCase {
     }
 
     func testIdentifier3() throws {
-        let doc = Document(source: "_id3>")
+        let doc = simpleDocument("_id3>")
         let p = identifier
 
         let (result, cursor) = try p.parse(doc.start())

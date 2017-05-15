@@ -18,7 +18,7 @@ import Nimble
 class IndentedContentTests: XCTestCase {
 
     func testSimple() throws {
-        let doc = Document(source: "test:\n")
+        let doc = simpleDocument("test:\n")
         doc.global.register(block: ElementType("test"))
         let p = elementWithIndentedContent
 
@@ -36,7 +36,7 @@ class IndentedContentTests: XCTestCase {
     }
 
     func testTitle() throws {
-        let doc = Document(source: "test: title\n")
+        let doc = simpleDocument("test: title\n")
         doc.global.register(block: ElementType("test"))
         let p = elementWithIndentedContent
 
@@ -57,7 +57,7 @@ class IndentedContentTests: XCTestCase {
     }
 
     func testContent1() throws {
-        let doc = Document(source: "test: title\n content\n")
+        let doc = simpleDocument("test: title\n content\n")
         doc.global.register(block: ElementType("test"))
         let p = elementWithIndentedContent
 
@@ -82,7 +82,7 @@ class IndentedContentTests: XCTestCase {
     }
 
     func testContent2() throws {
-        let doc = Document(source: "test: title\n\n content\n")
+        let doc = simpleDocument("test: title\n\n content\n")
         doc.global.register(block: ElementType("test"))
         let p = elementWithIndentedContent
 
@@ -107,7 +107,7 @@ class IndentedContentTests: XCTestCase {
     }
 
     func testId1() throws {
-        let doc = Document(source: "test #name:\n")
+        let doc = simpleDocument("test #name:\n")
         doc.global.register(block: ElementType("test"))
         let p = elementWithIndentedContent
 
@@ -130,7 +130,7 @@ class IndentedContentTests: XCTestCase {
     }
 
     func testId2() throws {
-        let doc = Document(source: "test: {#name}\n")
+        let doc = simpleDocument("test: {#name}\n")
         doc.global.register(block: ElementType("test"))
         let p = elementWithIndentedContent
 
@@ -153,7 +153,7 @@ class IndentedContentTests: XCTestCase {
     }
 
     func testClass1() throws {
-        let doc = Document(source: "test .name:\n")
+        let doc = simpleDocument("test .name:\n")
         doc.global.register(block: ElementType("test"))
         let p = elementWithIndentedContent
 
@@ -176,7 +176,7 @@ class IndentedContentTests: XCTestCase {
     }
 
     func testClass2() throws {
-        let doc = Document(source: "test: {.name}\n")
+        let doc = simpleDocument("test: {.name}\n")
         doc.global.register(block: ElementType("test"))
         let p = elementWithIndentedContent
 
@@ -199,7 +199,7 @@ class IndentedContentTests: XCTestCase {
     }
 
     func testCombination1() throws {
-        let doc = Document(source: "test #name x=y: title text\n  content\n")
+        let doc = simpleDocument("test #name x=y: title text\n  content\n")
         doc.global.register(block: ElementType("test"))
         let p = elementWithIndentedContent
 
@@ -234,7 +234,7 @@ class IndentedContentTests: XCTestCase {
     }
 
     func testCombination2() throws {
-        let doc = Document(source: "test #name: title text {x=y}\n  content\n")
+        let doc = simpleDocument("test #name: title text {x=y}\n  content\n")
         doc.global.register(block: ElementType("test"))
         let p = elementWithIndentedContent
 
@@ -271,7 +271,7 @@ class IndentedContentTests: XCTestCase {
     }
 
     func testCombination3() throws {
-        let doc = Document(source: "test: title text {#name x=y}\n  content\n")
+        let doc = simpleDocument("test: title text {#name x=y}\n  content\n")
         doc.global.register(block: ElementType("test"))
         let p = elementWithIndentedContent
 

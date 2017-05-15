@@ -18,28 +18,28 @@ import Nimble
 class BlockQuoteTests: XCTestCase {
 
     func testReject1() throws {
-        let doc = Document(source: "")
+        let doc = simpleDocument("")
         let p = quotedBlock
 
         expect { try p.parse(doc.start()) }.to(throwError())
     }
 
     func testReject2() throws {
-        let doc = Document(source: "\n")
+        let doc = simpleDocument("\n")
         let p = quotedBlock
 
         expect { try p.parse(doc.start()) }.to(throwError())
     }
 
     func testReject3() throws {
-        let doc = Document(source: "\n\n")
+        let doc = simpleDocument("\n\n")
         let p = quotedBlock
 
         expect { try p.parse(doc.start()) }.to(throwError())
     }
 
     func testSingleLine1() throws {
-        let doc = Document(source: "> a\n")
+        let doc = simpleDocument("> a\n")
         let p = quotedBlock
 
         let (nodes, cursor) = try parse(p, doc)
@@ -58,7 +58,7 @@ class BlockQuoteTests: XCTestCase {
     }
 
     func testSingleLine2() throws {
-        let doc = Document(source: "> a\nb\n")
+        let doc = simpleDocument("> a\nb\n")
         let p = quotedBlock
 
         let (nodes, cursor) = try parse(p, doc)
@@ -77,7 +77,7 @@ class BlockQuoteTests: XCTestCase {
     }
 
     func testMultiLine1() throws {
-        let doc = Document(source: "> a\n> b\n")
+        let doc = simpleDocument("> a\n> b\n")
         let p = quotedBlock
 
         let (nodes, cursor) = try parse(p, doc)

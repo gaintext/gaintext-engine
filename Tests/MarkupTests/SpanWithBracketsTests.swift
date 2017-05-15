@@ -19,25 +19,25 @@ import Nimble
 class SpanWithBracketsTests: XCTestCase {
 
     func testNoBracket() throws {
-        let doc = Document(source: "no[]")
+        let doc = simpleDocument("no[]")
         let p = spanWithBrackets
         expect(try p.parse(doc.start())).to(throwError())
     }
 
     func testEmptyBracket() throws {
-        let doc = Document(source: "[]")
+        let doc = simpleDocument("[]")
         let p = spanWithBrackets
         expect(try p.parse(doc.start())).to(throwError())
     }
 
     func testNoClosingBracket() throws {
-        let doc = Document(source: "[raw:")
+        let doc = simpleDocument("[raw:")
         let p = spanWithBrackets
         expect(try p.parse(doc.start())).to(throwError())
     }
 
     func testRawElement1() throws {
-        let doc = Document(source: "[test:text]stuff")
+        let doc = simpleDocument("[test:text]stuff")
         doc.global.markupRegistry.register(ElementType("test"))
         let p = spanWithBrackets
 
@@ -58,7 +58,7 @@ class SpanWithBracketsTests: XCTestCase {
     }
 
     func testRawElement2() throws {
-        let doc = Document(source: "[test: text] stuff")
+        let doc = simpleDocument("[test: text] stuff")
         doc.global.markupRegistry.register(ElementType("test"))
         let p = spanWithBrackets
 
@@ -79,7 +79,7 @@ class SpanWithBracketsTests: XCTestCase {
     }
 
     func testIdAttribute() throws {
-        let doc = Document(source: "[test #id1: text] stuff")
+        let doc = simpleDocument("[test #id1: text] stuff")
         doc.global.markupRegistry.register(ElementType("test"))
         let p = spanWithBrackets
 
@@ -108,7 +108,7 @@ class SpanWithBracketsTests: XCTestCase {
     }
 
     func testAttributes() throws {
-        let doc = Document(source: "[test .class1 x=y: text] stuff")
+        let doc = simpleDocument("[test .class1 x=y: text] stuff")
         doc.global.markupRegistry.register(ElementType("test"))
         let p = spanWithBrackets
 

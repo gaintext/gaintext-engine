@@ -19,7 +19,7 @@ import Nimble
 class DefineTests: XCTestCase {
 
     func testDefine1() throws {
-        let doc = Document(source:
+        let doc = simpleDocument(
             "define: author\n" +
             "author: me\n"
             )
