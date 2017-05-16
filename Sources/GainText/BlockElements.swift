@@ -54,4 +54,5 @@ let blockElements = [
     blockUL,
 
     DefinitionElementType(),
+    ImportElementType(),
 ]

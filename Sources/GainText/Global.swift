@@ -62,13 +62,23 @@ extension DocumentLoaderDelegate {
 
 // for testing only
 struct SimpleDocumentLoader: DocumentLoaderDelegate {
-    public func load(fromFile: String, scope: Scope) throws -> Document {
-        fatalError()
+    enum LoaderError: Error {
+        case notFound
     }
+    public func load(fromFile name: String, scope: Scope) throws -> Document {
+        if let source = documents[name] {
+            return Document(source: source, global: scope, loader: self)
+        }
+        throw LoaderError.notFound
+    }
+    let documents: [String: String]
 }
 /// Create a simple GainText document.
 ///
-/// No additional imports are allowed.
-public func simpleDocument(_ source: String) -> Document {
-    return Document(source: source, global: globalScope(), loader: SimpleDocumentLoader())
+/// This is mainly for testing.
+/// The document source and any external sources have to be
+/// specified as Strings.
+public func simpleDocument(_ source: String, external documents: [String: String] = [:]) -> Document {
+    let loader = SimpleDocumentLoader(documents: documents)
+    return Document(source: source, global: globalScope(), loader: loader)
 }
