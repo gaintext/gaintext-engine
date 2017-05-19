@@ -28,10 +28,38 @@ class DefineTests: XCTestCase {
             == "<author>me\n</author>"
     }
 
+    func testDefine2() throws {
+        let doc = simpleDocument(
+            "define: author\n" +
+            "  param: city\n" +
+            "author: me\n" +
+            "  city: Nuremberg\n"
+        )
+        let html = doc.parseHTML()
+        expect(html.querySelector("body")?.innerHTML)
+            == "<author>me\n<city>Nuremberg\n</city></author>"
+    }
+
+    func testDefine3() throws {
+        let doc = simpleDocument(
+            "define: author\n" +
+                "  param: city\n" +
+                "author: me\n" +
+            "  city: Nuremberg\n" +
+            "\n" +
+            "city: other\n"
+        )
+        let html = doc.parseHTML()
+        expect(html.querySelector("body")?.innerHTML) ==
+            "<author>me\n<city>Nuremberg\n</city></author>" +
+            "<p>city: other\n</p>"
+    }
 
     static var allTests : [(String, (DefineTests) -> () throws -> Void)] {
         return [
             ("testDefine1", testDefine1),
+            ("testDefine2", testDefine2),
+            ("testDefine3", testDefine3),
         ]
     }
 }

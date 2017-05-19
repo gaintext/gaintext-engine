@@ -10,19 +10,11 @@
 
 import Engine
 
-class DefinitionScope: Scope {
-    func addParameter(name: String) {
-        print("scope.addParameter \(name)")
-    }
-}
+
+private let parameterType = ElementType("param")
 
 /// Definition of new Elements.
 class DefinitionElement: Element {
-
-    override func childScope() -> Scope {
-        let scope = super.childScope()
-        return DefinitionScope(parent: scope)
-    }
 
     override func finish(_ node: Node) {
         guard title.count > 0 else {
@@ -31,31 +23,73 @@ class DefinitionElement: Element {
         }
         let name = title[0].sourceContent
 
-        let customType = CustomElementType(name: name)
+        let customType = CustomElementType(name, template: body)
         scope.register(block: customType)
     }
 }
 
+/// Type definition for the elment 'define'.
+///
+/// Uses our own `DefinitionElement` class for parsing,
+/// which is responsible to register a `CustomElementType`
+/// for each newly defined element.
 public class DefinitionElementType: ElementType {
     public init() {
-        super.init("define", type: ElementNodeType(name: "define"))
+        var template = ScopeTemplate()
+        template.block["param"] = parameterType
+        super.init(
+            "define",
+            type: ElementNodeType(name: "define"),
+            scope: template
+        )
     }
     public override func element(in scope: Scope) -> Element {
         return DefinitionElement(type: self, scope: scope)
     }
 }
 
-
-class ParameterNodeType: ElementNodeType {
-    override func prepare(_ node: Node, _ scope: Scope) {
-        // TBD: go through all scopes to find the definition
-        let definition = scope as! DefinitionScope
-        definition.addParameter(name: "foo")
+private func getNodeTitle(_ node: Node) -> String? {
+    for child in node.children {
+        if child.nodeType.name == "gaintext-title" {
+            return child.sourceContent
+        }
     }
+    return nil
 }
 
-class CustomElementType: ElementType {
-    init(name: String) {//, template: ScopeTemplate) {
-        super.init(name, type: ElementNodeType(name: name))//, body: <#T##NodeParser?#>, scope: template)
+private func addParameter(_ node: Node, to template: inout ScopeTemplate) {
+    for child in node.children {
+        if child.nodeType.name == "gaintext-title" {
+            let name = child.sourceContent
+            template.block[name] = ElementType(name)
+            return
+        }
     }
+    fatalError("parameter without name?")
+}
+
+/// The type for custom elements.
+///
+/// Custom element types are defined dynamically when encountering
+/// a `DefinitionElement`.
+class CustomElementType: ElementType {
+    init(_ name: String, template: [Node]) {
+        var scopeTemplate = ScopeTemplate()
+        // prepare list of available parameters
+        for node in template {
+            if node.nodeType === parameterType.nodeType {
+                addParameter(node, to: &scopeTemplate)
+            }
+        }
+        self.template = template
+        super.init(
+            name,
+            type: ElementNodeType(name: name),
+            scope: scopeTemplate
+        )
+    }
+
+    /// The template for new elements of this type.
+    /// Contains all nodes from the body of the element definition.
+    let template: [Node]
 }

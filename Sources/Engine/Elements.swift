@@ -35,7 +35,7 @@ open class Element {
 
     /// Create a new `Scope` instance for parsing of the element's children.
     open func childScope() -> Scope {
-        return Scope(parent: scope, template: type.template)
+        return Scope(parent: scope, template: type.scopeTemplate)
     }
 
     /// Create the `Cursor` for this element's children.
@@ -104,11 +104,11 @@ let elementSpanParser = Parser<(Parser<()>) -> Parser<[Node]>> { input in
 /// The `ElementType` is registered with a `Scope` and is responsible
 /// to create an `Element` instance.
 open class ElementType {
-    let name: String
-    let nodeType: NodeType
+    public let name: String
+    public let nodeType: NodeType
     let bodyParser: Parser<[Node]>?
     let titleParser: SpanParser?
-    let template: ScopeTemplate
+    let scopeTemplate: ScopeTemplate
 
     // TBD: maybe use some special "nothing here" parser as default?
     public init(_ name: String, type: NodeType,
@@ -119,7 +119,7 @@ open class ElementType {
         self.nodeType = type
         self.bodyParser = body
         self.titleParser = title
-        self.template = template
+        self.scopeTemplate = template
     }
 
     /// Factory method to create a new `Element` instance
@@ -179,8 +179,9 @@ extension ElementRegistry {
 }
 
 public struct ScopeTemplate {
-    var block: [String: ElementType] = [:]
-    var markup: [String: ElementType] = [:]
+    public var block: [String: ElementType] = [:]
+    public var markup: [String: ElementType] = [:]
+    public init() {}
 }
 
 extension ScopeTemplate {
