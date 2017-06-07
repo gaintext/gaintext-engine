@@ -94,11 +94,11 @@ extension Cursor {
     }
 
     public var char: Character {
-        return source.characters[position.index]
+        return source[position.index]
     }
 
-    public var tail: String {
-        return source.substring(with: position.index..<line.endIndex)
+    public var tail: Substring {
+        return source[position.index..<line.endIndex]
     }
     public func tailLine() -> Line {
         return Line(start: position, endIndex: line.endIndex)
@@ -106,8 +106,8 @@ extension Cursor {
 }
 
 extension Cursor {
-    public func head(from: Position) -> String {
-        return source.substring(with: from.index..<position.index)
+    public func head(from: Position) -> Substring {
+        return source[from.index..<position.index]
     }
 }
 
@@ -174,7 +174,7 @@ extension Cursor {
 
     public var atWhitespaceOnlyLine: Bool {
         if line.start.index == line.endIndex { return true }
-        for c in tail.characters {
+        for c in tail {
             if !isWhitespace(char: c) {
                 return false
             }

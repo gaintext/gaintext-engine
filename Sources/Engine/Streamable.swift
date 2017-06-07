@@ -45,8 +45,8 @@ private func _write<Target: TextOutputStream>(indentation level: Int, to s: inou
     s.write(String(repeating: " ", count: level))
 }
 
-private func _write<Target: TextOutputStream>(escaped string: String, to s: inout Target) {
-    for c in string.characters {
+private func _write<Target: TextOutputStream>(escaped string: Substring, to s: inout Target) {
+    for c in string {
         switch c {
         case "<": s.write("&lt;")
         case ">": s.write("&gt;")

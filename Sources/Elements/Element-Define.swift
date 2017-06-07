@@ -21,7 +21,7 @@ class DefinitionElement: Element {
             // TBD: throw?
             fatalError("error: nothing to define")
         }
-        let name = title[0].sourceContent
+        let name = String(title[0].sourceContent)
 
         let customType = CustomElementType(name, template: body)
         scope.register(block: customType)
@@ -48,7 +48,7 @@ public class DefinitionElementType: ElementType {
     }
 }
 
-private func getNodeTitle(_ node: Node) -> String? {
+private func getNodeTitle(_ node: Node) -> Substring? {
     for child in node.children {
         if child.nodeType.name == "gaintext-title" {
             return child.sourceContent
@@ -60,7 +60,7 @@ private func getNodeTitle(_ node: Node) -> String? {
 private func addParameter(_ node: Node, to template: inout ScopeTemplate) {
     for child in node.children {
         if child.nodeType.name == "gaintext-title" {
-            let name = child.sourceContent
+            let name = String(child.sourceContent)
             template.block[name] = ElementType(name)
             return
         }

@@ -10,7 +10,7 @@
 
 import Foundation
 
-public protocol ObjectIdentity: class, Equatable, Hashable {}
+public protocol ObjectIdentity: class, Hashable {}
 extension ObjectIdentity {
     public static func ==(lhs: Self, rhs: Self) -> Bool {
         return ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
@@ -129,7 +129,7 @@ extension Node {
     public var sourceRange: String {
         return String(describing: range)
     }
-    public var sourceContent: String {
+    public var sourceContent: Substring {
         return range.content
     }
 }
@@ -215,7 +215,7 @@ extension Position: Equatable {
 }
 extension Position: Hashable {
     public var hashValue: Int {
-        return index._utf16Index
+        return index.encodedOffset
     }
 }
 
@@ -231,10 +231,10 @@ extension SourceRange: CustomStringConvertible {
 }
 
 extension SourceRange {
-    public var content: String {
+    public var content: Substring {
         assert(start.document == end.document)
         let source = start.document.source
-        return source.substring(with: start.index..<end.index)
+        return source[start.index..<end.index]
     }
 }
 

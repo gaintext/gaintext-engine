@@ -82,9 +82,9 @@ func generateHTML(for node: Node, to element: HTMLElement) {
         generateHTML(for: node.children, to: element)
         element.append(HTMLText(data: "\n"))
     case "text":
-        element.append(HTMLText(data: node.sourceContent))
+        element.append(HTMLText(data: String(node.sourceContent)))
     case "html":
-        let parser = HTMLParser(string: node.sourceContent)
+        let parser = HTMLParser(string: String(node.sourceContent))
         element.append(parser.parseFragment(withContextElement: element))
     default:
         let new = HTMLElement(tagName: node.nodeType.name)

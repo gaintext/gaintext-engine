@@ -28,7 +28,7 @@ public func literal(_ token: Character) -> Parser<String> {
 
 /// Parser for one specific literal string.
 public func literal(_ token: String) -> Parser<String> {
-    let count = token.characters.count
+    let count = token.count
 
     return Parser<String> { input in
         var cursor = input
@@ -144,7 +144,7 @@ private let identifierChars = "_@0123456789"
     + "abcdefghijklmnopqrstuvwxyz"
     + "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 /// Parser which matches identifiers (all alpha-numerical characters).
-public let identifier = collect(fromSet: Set(identifierChars.characters))
+public let identifier = collect(fromSet: Set(identifierChars))
 
 /// Parser which matches consequtive white-space characters.
 public let whitespace = collect(min: 1, takeWhile: { $0.atWhitespace })
@@ -243,7 +243,7 @@ public let skipEmptyLines = Parser<()> { input in
 /// Debugging Parser which prints the current position.
 public func debug(msg: String, file: StaticString = #file, line: Int = #line) -> Parser<()> {
     return Parser { input in
-        let fileName = String(file.description.characters.split(separator: "/").last!)
+        let fileName = String(file.description.split(separator: "/").last!)
         print("\(input.level) \(fileName):\(line): debug(\(input.position.right)) \(msg)")
         return ((), input)
     }
@@ -251,7 +251,7 @@ public func debug(msg: String, file: StaticString = #file, line: Int = #line) ->
 /// Debugging Parser which wraps any parser and prints its result.
 public func debug<Result>(_ p: Parser<Result>, file: StaticString = #file, line: Int = #line) -> Parser<Result> {
     return Parser { input in
-        let fileName = String(file.description.characters.split(separator: "/").last!)
+        let fileName = String(file.description.split(separator: "/").last!)
         do {
             let (result, tail) = try p.parse(input)
             print("\(input.level) \(fileName):\(line): debug(\(input.position.right)..\(tail.position.left)) parsed '\(result)'")

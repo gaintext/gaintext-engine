@@ -19,7 +19,7 @@ class ImportElement: Element {
             // TBD: throw?
             fatalError("error: nothing to import")
         }
-        let name = title[0].sourceContent
+        let name = String(title[0].sourceContent)
         let loader = node.document.loader
         do {
             let external = try loader.load(fromFile: name, scope: scope)

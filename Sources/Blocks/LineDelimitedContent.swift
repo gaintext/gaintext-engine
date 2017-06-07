@@ -32,7 +32,9 @@ private let blockDelimiterLine = Parser<String> { input in
         throw ParserError.notFound(position: input.position)
     }
 
-    return (tail.head(from: input.position), tail)
+    let delimiter = String(tail.head(from: input.position))
+
+    return (delimiter, tail)
 }
 
 
@@ -58,7 +60,7 @@ private func contentLines(until delimiter: String) -> Parser<[Line]> {
 public let lineDelimitedContent =
     lookahead(blockDelimiterLine) >>- { delimiter in
         element(
-            elementCreateBlockParser(name: "block:\(delimiter.characters.first!)") *>
+            elementCreateBlockParser(name: "block:\(delimiter.first!)") *>
             literal(delimiter) *>
             optional(elementContent(attributesParser(literal(":")*>pure(())))) *>
             optional(whitespace) *> elementTitleLine *> endOfLine *>
