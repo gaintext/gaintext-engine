@@ -1,5 +1,5 @@
 //
-// GainText parser
+// GainText
 // Copyright Martin Waitz
 //
 // This program is free software: you can redistribute it and/or modify

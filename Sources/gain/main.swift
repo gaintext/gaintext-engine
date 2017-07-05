@@ -1,5 +1,5 @@
 //
-// GainText parser
+// GainText
 // Copyright Martin Waitz
 //
 // This program is free software: you can redistribute it and/or modify
@@ -9,21 +9,10 @@
 //
 
 import Foundation
-import Engine
-import GainText
-import HTMLKit
-
-func main() throws {
-    let name = CommandLine.arguments[1]
-
-    let loader = DocumentLoader()
-    let doc = try loader.loadRoot(fromFile: name)
-
-    print(doc.parseHTML().innerHTML)
-}
 
 do {
-    try main()
+    let command = GainCommand(args: CommandLine.arguments)
+    try command.run()
 } catch let e {
     print("error:", e)
 }
