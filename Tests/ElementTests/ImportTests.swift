@@ -19,16 +19,19 @@ import Nimble
 class ImportTests: XCTestCase {
 
     func testImport1() throws {
-        let doc = simpleDocument(
-            "import: base\n" +
-            "author: me\n",
+        let doc = simpleDocument("""
+            import: base
+            author: me
+            """,
             external: [
                 "base": "define: author\n"
             ]
         )
         let html = doc.parseHTML()
-        expect(html.querySelector("body")?.innerHTML)
-            == "<author>me\n</author>"
+        expect(html.querySelector("body")?.innerHTML) == """
+            <author>me
+            </author>
+            """
     }
 
 

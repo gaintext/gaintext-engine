@@ -79,7 +79,13 @@ class ParagraphTests: XCTestCase {
     }
 
     func testMultiLine1() throws {
-        let doc = simpleDocument("a\nb\nc\n")
+        let doc = simpleDocument(
+            """
+            a
+            b
+            c
+
+            """)
         let p = paragraph
 
         let (nodes, cursor) = try parse(p, doc)
@@ -99,7 +105,13 @@ class ParagraphTests: XCTestCase {
     }
 
     func testMultiLine2() throws {
-        let doc = simpleDocument("a\nb\n\nc\n")
+        let doc = simpleDocument(
+            """
+            a
+            b
+
+            c
+            """)
         let p = list(paragraph, separator: skipEmptyLines)
 
         let (nodes, cursor) = try parse(p, doc)
@@ -131,7 +143,13 @@ class ParagraphTests: XCTestCase {
     }
 
     func testWhitespaceSeparated1() throws {
-        let doc = simpleDocument("a\nb\n   c\nd\n")
+        let doc = simpleDocument(
+            """
+            a
+            b
+               c
+            d
+            """)
         let p = list(paragraph, separator: skipEmptyLines)
 
         let (nodes, cursor) = try parse(p, doc)
@@ -151,7 +169,12 @@ class ParagraphTests: XCTestCase {
     }
 
     func testWhitespaceSeparated2() throws {
-        let doc = simpleDocument("a\nb\n - c\n")
+        let doc = simpleDocument(
+            """
+            a
+            b
+             - c
+            """)
 
         let nodes = doc.parse()
         expect(nodes).to(haveCount(2))
@@ -168,7 +191,12 @@ class ParagraphTests: XCTestCase {
     }
 
     func testListSeparated1() throws {
-        let doc = simpleDocument("a\nb\n- c\n")
+        let doc = simpleDocument(
+            """
+            a
+            b
+            - c
+            """)
 
         let nodes = doc.parse()
         expect(nodes).to(haveCount(2))
@@ -185,7 +213,12 @@ class ParagraphTests: XCTestCase {
     }
 
     func testListSeparated2() throws {
-        let doc = simpleDocument("a\nb\n* c\n")
+        let doc = simpleDocument(
+            """
+            a
+            b
+            * c
+            """)
 
         let nodes = doc.parse()
         expect(nodes).to(haveCount(2))

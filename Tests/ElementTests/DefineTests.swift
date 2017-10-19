@@ -19,10 +19,10 @@ import Nimble
 class DefineTests: XCTestCase {
 
     func testDefine1() throws {
-        let doc = simpleDocument(
-            "define: author\n" +
-            "author: me\n"
-            )
+        let doc = simpleDocument("""
+            define: author
+            author: me
+            """)
         let html = doc.parseHTML()
         expect(html.querySelector("body")?.innerHTML)
             == "<author>me\n</author>"
@@ -36,23 +36,29 @@ class DefineTests: XCTestCase {
             "  city: Nuremberg\n"
         )
         let html = doc.parseHTML()
-        expect(html.querySelector("body")?.innerHTML)
-            == "<author>me\n<city>Nuremberg\n</city></author>"
+        expect(html.querySelector("body")?.innerHTML) == """
+            <author>me
+            <city>Nuremberg
+            </city></author>
+            """
     }
 
     func testDefine3() throws {
-        let doc = simpleDocument(
-            "define: author\n" +
-                "  param: city\n" +
-                "author: me\n" +
-            "  city: Nuremberg\n" +
-            "\n" +
-            "city: other\n"
-        )
+        let doc = simpleDocument("""
+            define: author
+              param: city
+            author: me
+              city: Nuremberg
+
+            city: other
+            """)
         let html = doc.parseHTML()
-        expect(html.querySelector("body")?.innerHTML) ==
-            "<author>me\n<city>Nuremberg\n</city></author>" +
-            "<p>city: other\n</p>"
+        expect(html.querySelector("body")?.innerHTML) == """
+            <author>me
+            <city>Nuremberg
+            </city></author><p>city: other
+            </p>
+            """
     }
 
     static var allTests : [(String, (DefineTests) -> () throws -> Void)] {

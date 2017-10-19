@@ -20,15 +20,17 @@ class HtmlTests: XCTestCase {
 
     func testWritingText() throws {
         let doc = simpleDocument(
-            "Headline\n" +
-            "========\n" +
-            "\n" +
-            "Text with _embedded_ `markup`.\n" +
-            "\n" +
-            " * Layout in source is important\n" +
-            "   - allows to write beautiful source documents\n" +
-            "   - also readable by non-techies\n" +
-            " * TBD\n")
+            """
+            Headline
+            ========
+
+            Text with _embedded_ `markup`.
+
+             * Layout in source is important
+               - allows to write beautiful source documents
+               - also readable by non-techies
+             * TBD
+            """)
         let html = doc.parseHTML()
 
         expect(html.querySelector("p")?.innerHTML)
@@ -37,8 +39,10 @@ class HtmlTests: XCTestCase {
 
     func testParagraph() throws {
         let doc = simpleDocument(
-            "Line one.\n" +
-            "Line two.\n")
+            """
+            Line one.
+            Line two.
+            """)
         let html = doc.parseHTML()
 
         expect(html.body!.innerHTML)
@@ -47,38 +51,56 @@ class HtmlTests: XCTestCase {
 
     func testBlockquote() throws {
         let doc = simpleDocument(
-            "> Line one.\n" +
-            "> Line two.\n")
+            """
+            > Line one.
+            > Line two.
+            """)
         let html = doc.parseHTML()
 
-        expect(html.body!.innerHTML)
-            == "<blockquote><p>Line one.\nLine two.\n</p></blockquote>"
+        expect(html.body!.innerHTML) ==
+            """
+            <blockquote><p>Line one.
+            Line two.
+            </p></blockquote>
+            """
     }
 
     func testPreformatted() throws {
         let doc = simpleDocument(
-            "```\n" +
-            "Line one.\n" +
-            " Line two.\n" +
-            "```\n"
+            """
+            ```
+            Line one.
+             Line two.
+            ```
+            """
         )
         let html = doc.parseHTML()
 
-        expect(html.body!.innerHTML)
-            == "<pre><code>Line one.\n Line two.\n</code></pre>"
+        expect(html.body!.innerHTML) ==
+            """
+            <pre><code>Line one.
+             Line two.
+            </code></pre>
+            """
     }
 
     func testPreformattedBlockquote() throws {
         let doc = simpleDocument(
-            "> ```\n" +
-            "> Line one.\n" +
-            ">  Line two.\n" +
-            "> ```\n"
+            """
+            > ```
+            > Line one.
+            >  Line two.
+            > ```
+            """
         )
         let html = doc.parseHTML()
 
-        expect(html.body!.innerHTML)
-            == "<blockquote><pre><code>Line one.\n Line two.\n</code></pre></blockquote>"
+        expect(html.body!.innerHTML) ==
+            """
+            <blockquote><pre><code>Line one.
+             Line two.
+            </code></pre></blockquote>
+            """
     }
 
     func testAttributes1() throws {
@@ -93,35 +115,44 @@ class HtmlTests: XCTestCase {
     
     func testStructuredElements() throws {
         let doc = simpleDocument(
-            "author: Martin Waitz\n" +
-            "  city: Nuremberg\n" +
-            "  country: Germany\n")
+            """
+            author: Martin Waitz
+              city: Nuremberg
+              country: Germany
+            """)
         doc.global.register(block: ElementType("author"))
         doc.global.register(block: ElementType("city"))
         doc.global.register(block: ElementType("country"))
         let html = doc.parseHTML()
 
         expect(html.querySelector("author")?.innerHTML) ==
-            "Martin Waitz\n<city>Nuremberg\n</city><country>Germany\n</country>"
+            """
+            Martin Waitz
+            <city>Nuremberg
+            </city><country>Germany
+            </country>
+            """
     }
 
     func testStructuredText() throws {
         let doc = simpleDocument(
-            "title: GainText example\n" +
-            "author: Martin Waitz\n" +
-            "\n" +
-            "abstract:\n" +
-            "  This is a small example which shows some *GainText* features.\n" +
-            "\n" +
-            "Chapter 1\n" +
-            "=========\n" +
-            "\n" +
-            "Blah blah, see [figure:f1].\n" +
-            "\n" +
-            "figure: #f1\n" +
-            "  image: fig1.png\n" +
-            "  caption: A nice graphic explaining the text\n" +
-            "\n")
+            """
+            title: GainText example
+            author: Martin Waitz
+
+            abstract:
+              This is a small example which shows some *GainText* features.
+
+            Chapter 1
+            =========
+
+            Blah blah, see [figure:f1].
+
+            figure: #f1
+              image: fig1.png
+              caption: A nice graphic explaining the text
+
+            """)
         doc.global.register(block: ElementType("title"))
         doc.global.register(block: ElementType("author"))
         doc.global.register(block: ElementType("abstract"))
