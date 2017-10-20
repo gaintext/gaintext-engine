@@ -135,13 +135,16 @@ public func list<Result>(first: Parser<[Result]>, following: Parser<[Result]>) -
         guard !input.atEndOfBlock else {
             throw ParserError.endOfScope(position: input.position)
         }
+        let element = input.element
         var (result, tail) = try first.parse(input)
+        assert(tail.element === element)
         while true {
             do {
                 guard !tail.atEndOfBlock else {
                     throw ParserError.endOfScope(position: tail.position)
                 }
                 let (item, next) = try following.parse(tail)
+                assert(next.element === element)
                 tail = next
                 result += item
             } catch is ParserError {

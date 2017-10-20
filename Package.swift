@@ -1,3 +1,4 @@
+// swift-tools-version:4.0
 //
 // GainText parser
 // Copyright Martin Waitz
@@ -13,31 +14,29 @@ import PackageDescription
 let package = Package(
     name: "gaintext-engine",
 
+    dependencies: [
+        .package(url: "https://github.com/iabudiab/HTMLKit", from: Version("2.0.5")),
+        .package(url: "https://github.com/thoughtbot/Runes", from: Version("4.0.0")),
+        .package(url: "https://github.com/Quick/Nimble", from: Version("7.0.1")),
+    ],
     targets: [
-        // Sources
-        Target(name: "Engine"),
-        Target(name: "Generator", dependencies: ["Engine"]),
+        .target(name: "Engine", dependencies: ["Runes"]),
+        .target(name: "Generator", dependencies: ["Engine", "HTMLKit"]),
 
-        Target(name: "Blocks", dependencies: ["Engine"]),
-        Target(name: "Markup", dependencies: ["Engine"]),
-        Target(name: "Elements", dependencies: ["Engine"]),
+        .target(name: "Blocks", dependencies: ["Engine"]),
+        .target(name: "Markup", dependencies: ["Engine"]),
+        .target(name: "Elements", dependencies: ["Engine"]),
 
-        Target(name: "GainText",
+        .target(name: "GainText",
             dependencies: ["Engine", "Generator", "Blocks", "Markup", "Elements"]),
 
-        Target(name: "gain", dependencies: ["Engine", "GainText", "Generator"]),
+        .target(name: "gain", dependencies: ["Engine", "GainText", "Generator"]),
 
-        // Tests
-        Target(name: "EngineTests", dependencies: ["GainText"]),
-        Target(name: "GeneratorTests", dependencies: ["GainText"]),
+        .testTarget(name: "EngineTests", dependencies: ["GainText", "Nimble"]),
+        .testTarget(name: "GeneratorTests", dependencies: ["GainText", "HTMLKit", "Nimble"]),
 
-        Target(name: "BlocksTests", dependencies: ["GainText"]),
-        Target(name: "MarkupTests", dependencies: ["GainText"]),
-//        Target(name: "ElementsTests", dependencies: ["EngineTests", "GainText"]),
-    ],
-    dependencies: [
-        .Package(url: "https://github.com/Quick/Nimble", majorVersion: 6),
-        .Package(url: "https://github.com/thoughtbot/Runes", majorVersion: 4),
-        .Package(url: "https://github.com/iabudiab/HTMLKit", majorVersion: 2),
+        .testTarget(name: "BlocksTests", dependencies: ["GainText", "Nimble"]),
+        .testTarget(name: "MarkupTests", dependencies: ["GainText", "Nimble"]),
+        .testTarget(name: "ElementTests", dependencies: ["GainText", "Nimble"]),
     ]
 )

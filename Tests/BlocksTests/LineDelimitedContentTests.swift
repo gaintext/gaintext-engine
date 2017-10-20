@@ -18,7 +18,11 @@ import Nimble
 class LineDelimitedTests: XCTestCase {
 
     func testEmpty() throws {
-        let doc = Document(source: "```\n```\n")
+        let doc = simpleDocument(
+            """
+            ```
+            ```
+            """)
         let p = lineDelimitedContent
 
         let (nodes, cursor) = try parse(p, doc)
@@ -34,7 +38,13 @@ class LineDelimitedTests: XCTestCase {
     }
 
     func testSimple() throws {
-        let doc = Document(source: "```\nabc\ndef\n```\n")
+        let doc = simpleDocument(
+            """
+            ```
+            abc
+            def
+            ```
+            """)
         let p = lineDelimitedContent
 
         let (nodes, cursor) = try parse(p, doc)
@@ -56,21 +66,37 @@ class LineDelimitedTests: XCTestCase {
     }
 
     func testReject1() throws {
-        let doc = Document(source: "```\nabc\ndef\n\n")
+        let doc = simpleDocument(
+            """
+            ```
+            abc
+            def
+
+            """)
         let p = lineDelimitedContent
 
         expect { try p.parse(doc.start()) }.to(throwError())
     }
 
     func testReject2() throws {
-        let doc = Document(source: "```\n")
+        let doc = simpleDocument(
+            """
+            ```
+
+            """)
         let p = lineDelimitedContent
 
         expect(try p.parse(doc.start())).to(throwError())
     }
 
     func testTitle() throws {
-        let doc = Document(source: "```#name x=y: title text\nabc\ndef\n```\n")
+        let doc = simpleDocument(
+            """
+            ```#name x=y: title text
+            abc
+            def
+            ```
+            """)
         let p = lineDelimitedContent
 
         let (nodes, tail) = try parse(p, doc)
@@ -106,7 +132,13 @@ class LineDelimitedTests: XCTestCase {
     }
 
     func testId() throws {
-        let doc = Document(source: "``` title text\nabc\ndef\n```\n")
+        let doc = simpleDocument(
+            """
+            ``` title text
+            abc
+            def
+            ```
+            """)
         let p = lineDelimitedContent
 
         let (nodes, tail) = try parse(p, doc)
@@ -131,7 +163,13 @@ class LineDelimitedTests: XCTestCase {
     }
 
     func testClass() throws {
-        let doc = Document(source: "``` .name:\nabc\ndef\n```\n")
+        let doc = simpleDocument(
+            """
+            ``` .name:
+            abc
+            def
+            ```
+            """)
         let p = lineDelimitedContent
 
         let (nodes, tail) = try parse(p, doc)
@@ -158,7 +196,13 @@ class LineDelimitedTests: XCTestCase {
     }
 
     func testCombination() throws {
-        let doc = Document(source: "```#name x=y: title text\nabc\ndef\n```\n")
+        let doc = simpleDocument(
+            """
+            ```#name x=y: title text
+            abc
+            def
+            ```
+            """)
         let p = lineDelimitedContent
 
         let (nodes, tail) = try parse(p, doc)

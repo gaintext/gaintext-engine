@@ -1,0 +1,34 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "HTMLKit",
+        "repositoryURL": "https://github.com/iabudiab/HTMLKit",
+        "state": {
+          "branch": null,
+          "revision": "bb6d7ccc67286e0ca0a8a97517241337d4e2900c",
+          "version": "2.0.6"
+        }
+      },
+      {
+        "package": "Nimble",
+        "repositoryURL": "https://github.com/Quick/Nimble",
+        "state": {
+          "branch": null,
+          "revision": "39b67002306fda9de4c9fd1290a6295f97edd09e",
+          "version": "7.0.1"
+        }
+      },
+      {
+        "package": "Runes",
+        "repositoryURL": "https://github.com/thoughtbot/Runes",
+        "state": {
+          "branch": null,
+          "revision": "e1bb1f7a589fe9172dc3410203f8b62373ea92a4",
+          "version": "4.1.0"
+        }
+      }
+    ]
+  },
+  "version": 1
+}

@@ -19,16 +19,18 @@ import Nimble
 class HtmlTests: XCTestCase {
 
     func testWritingText() throws {
-        let doc = Document(source:
-            "Headline\n" +
-            "========\n" +
-            "\n" +
-            "Text with _embedded_ `markup`.\n" +
-            "\n" +
-            " * Layout in source is important\n" +
-            "   - allows to write beautiful source documents\n" +
-            "   - also readable by non-techies\n" +
-            " * TBD\n")
+        let doc = simpleDocument(
+            """
+            Headline
+            ========
+
+            Text with _embedded_ `markup`.
+
+             * Layout in source is important
+               - allows to write beautiful source documents
+               - also readable by non-techies
+             * TBD
+            """)
         let html = doc.parseHTML()
 
         expect(html.querySelector("p")?.innerHTML)
@@ -36,9 +38,11 @@ class HtmlTests: XCTestCase {
     }
 
     func testParagraph() throws {
-        let doc = Document(source:
-            "Line one.\n" +
-            "Line two.\n")
+        let doc = simpleDocument(
+            """
+            Line one.
+            Line two.
+            """)
         let html = doc.parseHTML()
 
         expect(html.body!.innerHTML)
@@ -46,43 +50,61 @@ class HtmlTests: XCTestCase {
     }
 
     func testBlockquote() throws {
-        let doc = Document(source:
-            "> Line one.\n" +
-            "> Line two.\n")
+        let doc = simpleDocument(
+            """
+            > Line one.
+            > Line two.
+            """)
         let html = doc.parseHTML()
 
-        expect(html.body!.innerHTML)
-            == "<blockquote><p>Line one.\nLine two.\n</p></blockquote>"
+        expect(html.body!.innerHTML) ==
+            """
+            <blockquote><p>Line one.
+            Line two.
+            </p></blockquote>
+            """
     }
 
     func testPreformatted() throws {
-        let doc = Document(source:
-            "```\n" +
-            "Line one.\n" +
-            " Line two.\n" +
-            "```\n"
+        let doc = simpleDocument(
+            """
+            ```
+            Line one.
+             Line two.
+            ```
+            """
         )
         let html = doc.parseHTML()
 
-        expect(html.body!.innerHTML)
-            == "<pre><code>Line one.\n Line two.\n</code></pre>"
+        expect(html.body!.innerHTML) ==
+            """
+            <pre><code>Line one.
+             Line two.
+            </code></pre>
+            """
     }
 
     func testPreformattedBlockquote() throws {
-        let doc = Document(source:
-            "> ```\n" +
-            "> Line one.\n" +
-            ">  Line two.\n" +
-            "> ```\n"
+        let doc = simpleDocument(
+            """
+            > ```
+            > Line one.
+            >  Line two.
+            > ```
+            """
         )
         let html = doc.parseHTML()
 
-        expect(html.body!.innerHTML)
-            == "<blockquote><pre><code>Line one.\n Line two.\n</code></pre></blockquote>"
+        expect(html.body!.innerHTML) ==
+            """
+            <blockquote><pre><code>Line one.
+             Line two.
+            </code></pre></blockquote>
+            """
     }
 
     func testAttributes1() throws {
-        let doc = Document(source: "p .cls1 .cls2 key=\"value\": stop")
+        let doc = simpleDocument("p .cls1 .cls2 key=\"value\": stop")
 
         let html = doc.parseHTML()
         let p = html.body!.firstChild! as! HTMLElement
@@ -92,61 +114,69 @@ class HtmlTests: XCTestCase {
     }
     
     func testStructuredElements() throws {
-        let doc = Document(source:
-            "author: Martin Waitz\n" +
-            "  city: Nuremberg\n" +
-            "  country: Germany\n")
+        let doc = simpleDocument(
+            """
+            author: Martin Waitz
+              city: Nuremberg
+              country: Germany
+            """)
         doc.global.register(block: ElementType("author"))
-        let nodes = doc.parse()
+        doc.global.register(block: ElementType("city"))
+        doc.global.register(block: ElementType("country"))
+        let html = doc.parseHTML()
 
-        expect(nodes).to(haveCount(1))
-
-        expect(nodes[0].nodeType.name) == "author"
+        expect(html.querySelector("author")?.innerHTML) ==
+            """
+            Martin Waitz
+            <city>Nuremberg
+            </city><country>Germany
+            </country>
+            """
     }
 
     func testStructuredText() throws {
-        let doc = Document(source:
-            "title: GainText example\n" +
-            "author: Martin Waitz\n" +
-            "\n" +
-            "abstract:\n" +
-            "  This is a small example which shows some *GainText* features.\n" +
-            "\n" +
-            "Chapter 1\n" +
-            "=========\n" +
-            "\n" +
-            "Blah blah, see [figure:f1].\n" +
-            "\n" +
-            "figure: #f1\n" +
-            "  image: fig1.png\n" +
-            "  caption: A nice graphic explaining the text\n" +
-            "\n")
+        let doc = simpleDocument(
+            """
+            title: GainText example
+            author: Martin Waitz
+
+            abstract:
+              This is a small example which shows some *GainText* features.
+
+            Chapter 1
+            =========
+
+            Blah blah, see [figure:f1].
+
+            figure: #f1
+              image: fig1.png
+              caption: A nice graphic explaining the text
+
+            """)
         doc.global.register(block: ElementType("title"))
         doc.global.register(block: ElementType("author"))
         doc.global.register(block: ElementType("abstract"))
         doc.global.register(block: ElementType("figure"))
 
-        let nodes = doc.parse()
+        let html = doc.parseHTML()
 
-        expect(nodes).to(haveCount(4))
-
-        expect(nodes[0].nodeType.name) == "title"
-        expect(nodes[1].nodeType.name) == "author"
-        expect(nodes[2].nodeType.name) == "abstract"
-        expect(nodes[3].nodeType.name) == "section"
+        expect(html.querySelector("abstract")?.innerHTML) ==
+            "<p>This is a small example which shows some <em>GainText</em> features.\n</p>"
+        expect(html.querySelector("section h1")?.innerHTML) ==
+        "Chapter 1"
     }
 
     func testEntities1() throws {
         let text = "HTML &amp; entities &lt;html&gt;&lt;/html&gt; elements\n"
 
-        let doc = Document(source: text)
+        let doc = simpleDocument(text)
         let html = doc.parseHTML()
 
         expect(html.querySelector("p")?.innerHTML) == text
     }
 
     func testEntities2() throws {
-        let doc = Document(source: "&mdash; &quot; &#182;\n")
+        let doc = simpleDocument("&mdash; &quot; &#182;\n")
         let html = doc.parseHTML()
 
         expect(html.querySelector("p")?.innerHTML) == "— \" ¶\n"

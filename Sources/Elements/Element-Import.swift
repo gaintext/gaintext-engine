@@ -11,14 +11,31 @@
 import Engine
 
 
-class ImportNodeType: ElementNodeType {
-    override func prepare(_ node: Node, _ scope: Scope) {
-        print("import: \(node)")
+/// Importing definitions of other files into the current scope.
+class ImportElement: Element {
+
+    override func finish(_ node: Node) {
+        guard title.count > 0 else {
+            // TBD: throw?
+            fatalError("error: nothing to import")
+        }
+        let name = String(title[0].sourceContent)
+        let loader = node.document.loader
+        do {
+            let external = try loader.load(fromFile: name, scope: scope)
+            let _ = external.parse()
+        } catch {
+            // TBD
+            fatalError()
+        }
     }
 }
 
 public class ImportElementType: ElementType {
     public init() {
-        super.init("import", type: ImportNodeType(name: "import"))
+        super.init("import", type: ElementNodeType(name: "import"))
+    }
+    public override func element(in scope: Scope) -> Element {
+        return ImportElement(type: self, scope: scope)
     }
 }

@@ -1,5 +1,5 @@
 //
-// GainText
+// GainText parser
 // Copyright Martin Waitz
 //
 // This program is free software: you can redistribute it and/or modify
@@ -8,11 +8,14 @@
 // (at your option) any later version.
 //
 
-import Foundation
+import Engine
+import Markup
 
-do {
-    let command = GainCommand(args: CommandLine.arguments)
-    try command.run()
-} catch let e {
-    print("error:", e)
-}
+
+let markupElements = [
+    ElementType("TBD"),
+    ElementType("em"),
+    ElementType("math"),
+    ElementType("code", title: rawTextParser),
+    ElementType("raw", title: rawTextParser)
+]

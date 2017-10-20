@@ -49,23 +49,27 @@ public class Block: ObjectIdentity {
 public struct Cursor {
     public var position: Position
     public var scope: Scope
+    public var element: Element?
     let block: Block
     fileprivate var lineIndex: Int
     fileprivate var startOfWord: Bool
+    let level: Int
 
-    init(at block: Block, scope: Scope) {
+    init(at block: Block, scope: Scope, element: Element?, level: Int = 0) {
         self.block = block
         self.lineIndex = block.lines.startIndex
         self.position = Position(at: block)
         self.scope = scope
         self.startOfWord = true
+        self.element = element
+        self.level = level
     }
 }
 
 extension Cursor {
     init(block lines: [Line], parent cursor: Cursor) {
         let block = Block(document: cursor.document, lines: lines)
-        self.init(at: block, scope: cursor.scope)
+        self.init(at: block, scope: cursor.scope, element: cursor.element, level: cursor.level + 1)
     }
 }
 
@@ -90,11 +94,11 @@ extension Cursor {
     }
 
     public var char: Character {
-        return source.characters[position.index]
+        return source[position.index]
     }
 
-    public var tail: String {
-        return source.substring(with: position.index..<line.endIndex)
+    public var tail: Substring {
+        return source[position.index..<line.endIndex]
     }
     public func tailLine() -> Line {
         return Line(start: position, endIndex: line.endIndex)
@@ -102,8 +106,8 @@ extension Cursor {
 }
 
 extension Cursor {
-    public func head(from: Position) -> String {
-        return source.substring(with: from.index..<position.index)
+    public func head(from: Position) -> Substring {
+        return source[from.index..<position.index]
     }
 }
 
@@ -170,7 +174,7 @@ extension Cursor {
 
     public var atWhitespaceOnlyLine: Bool {
         if line.start.index == line.endIndex { return true }
-        for c in tail.characters {
+        for c in tail {
             if !isWhitespace(char: c) {
                 return false
             }

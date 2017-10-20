@@ -14,12 +14,12 @@ import Markup
 import Generator
 import Runes
 
+
 private let blockParser = list(
     listParser <|> titledContent <|> elementBlockParser <|> lineDelimitedContent <|>
     quotedBlock <|> paragraph,
     separator: skipEmptyLines
 )
-
 
 private let spanParser = textWithMarkupParser(markup: cached(
     escaped <|> htmlEntity <|> spanWithBrackets <|> spanWithDelimiters
@@ -27,33 +27,12 @@ private let spanParser = textWithMarkupParser(markup: cached(
 
 
 private func registerElements(global scope: Scope) {
-    let blockElements = [
-//        ImportElementType(),
-//        DefinitionElementType(),
-        ElementType("p", body: list(textLine)),
-        ElementType("section"),
-        ElementType("example"),
-        ElementType("math-block"),
-        ElementType("blockquote"),
-        elementLI,
-        elementUL,
-        ElementType("table"),
-        ElementType("TBD"),
-        ElementType("code-block", body: list(codeLine))
-    ]
     for element in blockElements {
         scope.register(block: element)
     }
     scope.register(block: "code-block", alias: "block:`")
     scope.register(block: "math-block", alias: "block:$")
 
-    let markupElements = [
-        ElementType("TBD"),
-        ElementType("em"),
-        ElementType("math"),
-        ElementType("code", title: rawTextParser),
-        ElementType("raw", title: rawTextParser)
-    ]
     for element in markupElements {
         scope.register(markup: element)
     }
@@ -64,18 +43,42 @@ private func registerElements(global scope: Scope) {
     scope.register(markup: "raw", alias: "span:~")
 }
 
-extension Document {
+func globalScope() -> Scope {
+    let scope = Scope(blockRegistry: ElementRegistry(),
+                      markupRegistry: ElementRegistry(),
+                      blockParser: blockParser,
+                      spanParser: spanParser)
+    registerElements(global: scope)
 
-    /// Create a Document from some source.
-    ///
-    /// The global scope will already be initialized for GainText parsing.
-    public convenience init(source: String) {
-        let scope = Scope(blockRegistry: ElementRegistry(),
-                          markupRegistry: ElementRegistry(),
-                          blockParser: blockParser,
-                          spanParser: spanParser)
-        registerElements(global: scope)
+    return scope
+}
 
-        self.init(source: source, global: scope)
+extension DocumentLoaderDelegate {
+
+    public func loadRoot(fromFile name: String) throws -> Document {
+        return try load(fromFile: name, scope: globalScope())
     }
+}
+
+// for testing only
+struct SimpleDocumentLoader: DocumentLoaderDelegate {
+    enum LoaderError: Error {
+        case notFound
+    }
+    public func load(fromFile name: String, scope: Scope) throws -> Document {
+        if let source = documents[name] {
+            return Document(source: source, global: scope, loader: self)
+        }
+        throw LoaderError.notFound
+    }
+    let documents: [String: String]
+}
+/// Create a simple GainText document.
+///
+/// This is mainly for testing.
+/// The document source and any external sources have to be
+/// specified as Strings.
+public func simpleDocument(_ source: String, external documents: [String: String] = [:]) -> Document {
+    let loader = SimpleDocumentLoader(documents: documents)
+    return Document(source: source, global: globalScope(), loader: loader)
 }

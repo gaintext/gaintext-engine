@@ -1,10 +1,10 @@
 matrix:
   include:
-    - env: TEST="swift test" SWIFT_VERSION=3.1 COV=no
+    - env: TEST="swift test" SWIFT_VERSION=4.0 COV=no
       os: linux
-    - env: TEST="swift test" SWIFT_VERSION=3.1 COV=no
+    - env: TEST="swift test" SWIFT_VERSION=4.0 COV=no
       os: osx
-    - env: TEST="xcodebuild -scheme gaintext-engine -project gaintext-engine.xcodeproj test" SWIFT_VERSION=3.1 COV=yes
+    - env: TEST="xcodebuild -scheme gaintext-engine-Package -project gaintext-engine.xcodeproj test" SWIFT_VERSION=4.0 COV=yes
       os: osx
   allow_failures:
     - os: linux
@@ -12,7 +12,7 @@ matrix:
 language: generic
 sudo: required
 dist: trusty
-osx_image: xcode8.3
+osx_image: xcode9
 install:
   - eval "$(curl -sL https://gist.githubusercontent.com/kylef/5c0475ff02b7c7671d2a/raw/9f442512a46d7a2af7b850d65a7e9bd31edfb09b/swiftenv-install.sh)"
   - swift --version

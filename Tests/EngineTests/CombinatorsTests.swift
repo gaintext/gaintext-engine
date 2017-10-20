@@ -24,7 +24,7 @@ let digits = collect(fromSet: "0123456789")
 class OperatorMapTests: XCTestCase {
 
     func testSuccess() throws {
-        let doc = Document(source: "123")
+        let doc = simpleDocument("123")
         let f: (String) -> Int = { Int($0)! }
         let p = f <^> digits
         let (result, tail) = try parse(p, doc)
@@ -32,7 +32,7 @@ class OperatorMapTests: XCTestCase {
         expect(tail.atEndOfLine) == true
     }
     func testFuncThrows() throws {
-        let doc = Document(source: "123")
+        let doc = simpleDocument("123")
         let f: (String) throws -> Int = { _ in throw TestError.a }
         let p = f <^> digits
         expect(try p.parse(doc.start())).to(throwError())
@@ -42,7 +42,7 @@ class OperatorMapTests: XCTestCase {
 class OperatorApplyTests: XCTestCase {
 
     func testSuccess() throws {
-        let doc = Document(source: "123")
+        let doc = simpleDocument("123")
         let p = pure { Int($0) } <*> digits
         let (result, tail) = try parse(p, doc)
         expect(result) == 123
@@ -53,7 +53,7 @@ class OperatorApplyTests: XCTestCase {
 class OperatorLeftTests: XCTestCase {
 
     func testLeft1() throws {
-        let doc = Document(source: "abcdef")
+        let doc = simpleDocument("abcdef")
         let p = literal("abc") <* literal("def")
         let (result, tail) = try parse(p, doc)
         expect(result) == "abc"
@@ -61,7 +61,7 @@ class OperatorLeftTests: XCTestCase {
     }
 
     func testLeft2() throws {
-        let doc = Document(source: "defabc")
+        let doc = simpleDocument("defabc")
         let p = literal("abc") <* literal("def")
         expect(try p.parse(doc.start())).to(throwError())
     }
@@ -70,7 +70,7 @@ class OperatorLeftTests: XCTestCase {
 class OperatorRightTests: XCTestCase {
 
     func testRight1() throws {
-        let doc = Document(source: "abcdef")
+        let doc = simpleDocument("abcdef")
         let p = literal("abc") *> literal("def")
         let (result, tail) = try parse(p, doc)
         expect(result) == "def"
@@ -78,7 +78,7 @@ class OperatorRightTests: XCTestCase {
     }
 
     func testRight2() throws {
-        let doc = Document(source: "defabc")
+        let doc = simpleDocument("defabc")
         let p = literal("abc") *> literal("def")
         expect(try p.parse(doc.start())).to(throwError())
     }
@@ -87,7 +87,7 @@ class OperatorRightTests: XCTestCase {
 class OperatorOrTests: XCTestCase {
 
     func testOr1() throws {
-        let doc = Document(source: "abc")
+        let doc = simpleDocument("abc")
         let p = literal("abc") <|> literal("def")
         let (result, tail) = try parse(p, doc)
         expect(result) == "abc"
@@ -95,7 +95,7 @@ class OperatorOrTests: XCTestCase {
     }
 
     func testOr2() throws {
-        let doc = Document(source: "def")
+        let doc = simpleDocument("def")
         let p = literal("abc") <|> literal("def")
         let (result, tail) = try parse(p, doc)
         expect(result) == "def"
@@ -103,7 +103,7 @@ class OperatorOrTests: XCTestCase {
     }
 
     func testOr3() throws {
-        let doc = Document(source: "ghi")
+        let doc = simpleDocument("ghi")
         let p = literal("abc") <|> literal("def")
         expect(try p.parse(doc.start())).to(throwError())
     }
@@ -112,21 +112,21 @@ class OperatorOrTests: XCTestCase {
 class OperatorMapParserTests: XCTestCase {
 
     func testMapParser1() throws {
-        let doc = Document(source: "ada")
+        let doc = simpleDocument("ada")
         let p = collect(fromSet: "abc") >>- { collect(fromSet: "def") <* literal($0) }
         let (result, tail) = try parse(p, doc)
         expect(result) == "d"
         expect(tail.atEndOfLine) == true
     }
     func testMapParser2() throws {
-        let doc = Document(source: "beb")
+        let doc = simpleDocument("beb")
         let p = collect(fromSet: "abc") >>- { collect(fromSet: "def") <* literal($0) }
         let (result, tail) = try parse(p, doc)
         expect(result) == "e"
         expect(tail.atEndOfLine) == true
     }
     func testMapParser3() throws {
-        let doc = Document(source: "adb")
+        let doc = simpleDocument("adb")
         let p = collect(fromSet: "abc") >>- { oneOf("def") <* literal($0) }
         expect(try p.parse(doc.start())).to(throwError())
     }
@@ -135,7 +135,7 @@ class OperatorMapParserTests: XCTestCase {
 class OperatorComposeFuncTests: XCTestCase {
 
     func testComposeFuncSuccess() throws {
-        let doc = Document(source: "aa")
+        let doc = simpleDocument("aa")
         let f = oneOf as (String)->Parser<String> >-> literal
         let (result, tail) = try parse(f("abc"), doc)
         expect(result) == "a"
@@ -143,12 +143,12 @@ class OperatorComposeFuncTests: XCTestCase {
     }
 
     func testComposeFuncLhsFailure() throws {
-        let doc = Document(source: "dd")
+        let doc = simpleDocument("dd")
         let f = oneOf as (String)->Parser<String> >-> literal
         expect(try f("abc").parse(doc.start())).to(throwError())
     }
     func testComposeFuncRhsFailure() throws {
-        let doc = Document(source: "ab")
+        let doc = simpleDocument("ab")
         let f = oneOf as (String)->Parser<String> >-> literal
         expect(try f("abc").parse(doc.start())).to(throwError())
     }
@@ -157,7 +157,7 @@ class OperatorComposeFuncTests: XCTestCase {
 class OperatorAddTests: XCTestCase {
 
     func testAddString1() throws {
-        let doc = Document(source: "ab")
+        let doc = simpleDocument("ab")
         let p = literal("a") <+> literal("b")
         let (result, tail) = try parse(p, doc)
         expect(result) == "ab"
@@ -165,7 +165,7 @@ class OperatorAddTests: XCTestCase {
     }
 
     func testAddList1() throws {
-        let doc = Document(source: "")
+        let doc = simpleDocument("")
         let p = pure(["a"]) <+> pure(["b"])
         let (result, _) = try parse(p, doc)
         expect(result) == ["a", "b"]
@@ -175,7 +175,7 @@ class OperatorAddTests: XCTestCase {
 class CombinatorMapTests: XCTestCase {
 
     func testSuccess1() throws {
-        let doc = Document(source: "123")
+        let doc = simpleDocument("123")
         let p = digits.map { Int($0) }
         let (result, tail) = try parse(p, doc)
         expect(result) == 123
@@ -183,7 +183,7 @@ class CombinatorMapTests: XCTestCase {
     }
 
     func testSuccess2() throws {
-        let doc = Document(source: "123a")
+        let doc = simpleDocument("123a")
         let p = digits.map { Int($0) }
         let (result, tail) = try parse(p, doc)
         expect(result) == 123
@@ -191,13 +191,13 @@ class CombinatorMapTests: XCTestCase {
     }
 
     func testFailure() throws {
-        let doc = Document(source: "a123")
+        let doc = simpleDocument("a123")
         let p = digits.map { Int($0) }
         expect(try p.parse(doc.start())).to(throwError())
     }
 
     func testFuncThrows() throws {
-        let doc = Document(source: "123")
+        let doc = simpleDocument("123")
         let p = digits.map { (_) throws -> Int in
             throw TestError.a
         }
@@ -208,14 +208,14 @@ class CombinatorMapTests: XCTestCase {
 class CombinatorLookaheadTests: XCTestCase {
 
     func testSuccess() throws {
-        let doc = Document(source: "123")
+        let doc = simpleDocument("123")
         let p = lookahead(digits)
         let (result, tail) = try parse(p, doc)
         expect(result) == "123"
         expect(tail.position) == doc.start().position
     }
     func testFailure() throws {
-        let doc = Document(source: "a123")
+        let doc = simpleDocument("a123")
         let p = lookahead(digits)
         expect(try p.parse(doc.start())).to(throwError())
     }
@@ -224,13 +224,13 @@ class CombinatorLookaheadTests: XCTestCase {
 class CombinatorNotTests: XCTestCase {
 
     func testSuccess() throws {
-        let doc = Document(source: "a123")
+        let doc = simpleDocument("a123")
         let p = not(digits)
         let (_, tail) = try parse(p, doc)
         expect(tail.atEndOfLine) == false
     }
     func testFailure() throws {
-        let doc = Document(source: "123")
+        let doc = simpleDocument("123")
         let p = not(digits)
         expect(try p.parse(doc.start())).to(throwError())
     }
@@ -239,14 +239,14 @@ class CombinatorNotTests: XCTestCase {
 class CombinatorOptionalTests: XCTestCase {
 
     func testSome1() throws {
-        let doc = Document(source: "123")
+        let doc = simpleDocument("123")
         let p = optional(digits)
         let (result, tail) = try parse(p, doc)
         expect(result) == .some("123")
         expect(tail.atEndOfLine) == true
     }
     func testNone1() throws {
-        let doc = Document(source: "a123")
+        let doc = simpleDocument("a123")
         let p = optional(digits)
         let (result, tail) = try parse(p, doc)
         expect(result).to(beNil())
@@ -254,14 +254,14 @@ class CombinatorOptionalTests: XCTestCase {
     }
 
     func testSome2() throws {
-        let doc = Document(source: "123")
+        let doc = simpleDocument("123")
         let p = optional(digits, otherwise: "0")
         let (result, tail) = try parse(p, doc)
         expect(result) == "123"
         expect(tail.atEndOfLine) == true
     }
     func testNone2() throws {
-        let doc = Document(source: "a123")
+        let doc = simpleDocument("a123")
         let p = optional(digits, otherwise: "0")
         let (result, tail) = try parse(p, doc)
         expect(result) == "0"
@@ -269,13 +269,13 @@ class CombinatorOptionalTests: XCTestCase {
     }
 
     func testSome3() throws {
-        let doc = Document(source: "123")
+        let doc = simpleDocument("123")
         let p = optional(digits *> pure(()))
         let (_, tail) = try parse(p, doc)
         expect(tail.atEndOfLine) == true
     }
     func testNone3() throws {
-        let doc = Document(source: "a123")
+        let doc = simpleDocument("a123")
         let p = optional(digits *> pure(()))
         let (_, tail) = try parse(p, doc)
         expect(tail.atEndOfLine) == false
@@ -286,14 +286,14 @@ class CombinatorOptionalTests: XCTestCase {
 class CombinatorLazyTests: XCTestCase {
 
     func testRecursive1() throws {
-        let doc = Document(source: "")
+        let doc = simpleDocument("")
         var p: Parser<String>!
         p = literal("abc") <+> optional(lazy(p), otherwise: "")
         expect(try p.parse(doc.start())).to(throwError())
     }
 
     func testRecursive2() throws {
-        let doc = Document(source: "abcdef")
+        let doc = simpleDocument("abcdef")
         var p: Parser<String>!
         p = literal("abc") <+> optional(lazy(p), otherwise: "")
 
@@ -303,7 +303,7 @@ class CombinatorLazyTests: XCTestCase {
     }
 
     func testRecursive3() throws {
-        let doc = Document(source: "abcabcdef")
+        let doc = simpleDocument("abcabcdef")
         var p: Parser<String>!
         p = literal("abc") <+> optional(lazy(p), otherwise: "")
 
@@ -324,7 +324,7 @@ class CombinatorLazyTests: XCTestCase {
 class CombinatorListTests: XCTestCase {
 
     func testEmpty() throws {
-        let doc = Document(source: "")
+        let doc = simpleDocument("")
         let p1 = literal("1").map {[$0]}
         let p2 = oneOf("23").map {[$0]}
         let p = list(first: p1, following: p2)
@@ -332,7 +332,7 @@ class CombinatorListTests: XCTestCase {
     }
 
     func testWrongStart() throws {
-        let doc = Document(source: "-")
+        let doc = simpleDocument("-")
         let p1 = literal("1").map {[$0]}
         let p2 = oneOf("23").map {[$0]}
         let p = list(first: p1, following: p2)
@@ -340,7 +340,7 @@ class CombinatorListTests: XCTestCase {
     }
 
     func testOnlyOne() throws {
-        let doc = Document(source: "1")
+        let doc = simpleDocument("1")
         let p1 = literal("1").map {[$0]}
         let p2 = oneOf("23").map {[$0]}
         let p = list(first: p1, following: p2)
@@ -350,7 +350,7 @@ class CombinatorListTests: XCTestCase {
     }
 
     func testTwo1() throws {
-        let doc = Document(source: "12")
+        let doc = simpleDocument("12")
         let p1 = literal("1").map {[$0]}
         let p2 = oneOf("23").map {[$0]}
         let p = list(first: p1, following: p2)
@@ -360,7 +360,7 @@ class CombinatorListTests: XCTestCase {
     }
 
     func testTwo2() throws {
-        let doc = Document(source: "12-")
+        let doc = simpleDocument("12-")
         let p1 = literal("1").map {[$0]}
         let p2 = oneOf("23").map {[$0]}
         let p = list(first: p1, following: p2)
@@ -370,7 +370,7 @@ class CombinatorListTests: XCTestCase {
     }
 
     func testThree1() throws {
-        let doc = Document(source: "123")
+        let doc = simpleDocument("123")
         let p1 = literal("1").map {[$0]}
         let p2 = oneOf("23").map {[$0]}
         let p = list(first: p1, following: p2)
@@ -380,7 +380,7 @@ class CombinatorListTests: XCTestCase {
     }
 
     func testThree2() throws {
-        let doc = Document(source: "123-")
+        let doc = simpleDocument("123-")
         let p1 = literal("1").map {[$0]}
         let p2 = oneOf("23").map {[$0]}
         let p = list(first: p1, following: p2)
@@ -390,13 +390,13 @@ class CombinatorListTests: XCTestCase {
     }
 
     func testSeparator0() throws {
-        let doc = Document(source: ",")
+        let doc = simpleDocument(",")
         let p = list(oneOf("123").map {[$0]}, separator: literal(","))
         expect(try p.parse(doc.start())).to(throwError())
     }
 
     func testSeparator1() throws {
-        let doc = Document(source: "1")
+        let doc = simpleDocument("1")
         let p = list(oneOf("123").map {[$0]}, separator: literal(","))
         let (result, tail) = try parse(p, doc)
         expect(result) == ["1"]
@@ -404,7 +404,7 @@ class CombinatorListTests: XCTestCase {
     }
 
     func testSeparator2() throws {
-        let doc = Document(source: "1,2")
+        let doc = simpleDocument("1,2")
         let p = list(oneOf("123").map {[$0]}, separator: literal(","))
         let (result, tail) = try parse(p, doc)
         expect(result) == ["1", "2"]
@@ -412,7 +412,7 @@ class CombinatorListTests: XCTestCase {
     }
 
     func testSeparator3() throws {
-        let doc = Document(source: "1,2,3")
+        let doc = simpleDocument("1,2,3")
         let p = list(oneOf("123").map {[$0]}, separator: literal(","))
         let (result, tail) = try parse(p, doc)
         expect(result) == ["1", "2", "3"]
@@ -420,7 +420,7 @@ class CombinatorListTests: XCTestCase {
     }
 
     func testSeparator4() throws {
-        let doc = Document(source: "1,2,3,")
+        let doc = simpleDocument("1,2,3,")
         let p = list(oneOf("123").map {[$0]}, separator: literal(","))
         let (result, tail) = try parse(p, doc)
         expect(result) == ["1", "2", "3"]
@@ -448,7 +448,7 @@ class CombinatorListTests: XCTestCase {
 class LookaheadParserTests: XCTestCase {
 
     func test1() throws {
-        let doc = Document(source: "abc")
+        let doc = simpleDocument("abc")
         let input = doc.start()
         let p = lookahead(literal("a"))
 
@@ -458,7 +458,7 @@ class LookaheadParserTests: XCTestCase {
     }
 
     func test2() throws {
-        let doc = Document(source: "abc")
+        let doc = simpleDocument("abc")
         let input = doc.start()
         let p = lookahead(literal("b"))
 

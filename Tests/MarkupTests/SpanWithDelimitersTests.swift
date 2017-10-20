@@ -20,7 +20,7 @@ class SpanWithDelimitersTests: XCTestCase {
 
     func testNoMath1() throws {
         let source = "The costs are $5 and $10.\n"
-        let doc = Document(source: source)
+        let doc = simpleDocument(source)
         let p = lineParser
         let (nodes, cursor) = try parse(p, doc)
         expect(nodes).to(haveCount(1))
@@ -34,7 +34,7 @@ class SpanWithDelimitersTests: XCTestCase {
 
     func testNoMath2() throws {
         let source = "The balance is between -$10 and -$5."
-        let doc = Document(source: source)
+        let doc = simpleDocument(source)
         let p = lineParser
         let (nodes, cursor) = try parse(p, doc)
         expect(nodes).to(haveCount(1))
@@ -43,7 +43,7 @@ class SpanWithDelimitersTests: XCTestCase {
 
     func testNoMath3() throws {
         let source = "The costs are ~10$."
-        let doc = Document(source: source)
+        let doc = simpleDocument(source)
         let p = lineParser
         let (nodes, cursor) = try parse(p, doc)
         expect(nodes).to(haveCount(1))
@@ -53,7 +53,7 @@ class SpanWithDelimitersTests: XCTestCase {
     func testMath1() throws {
         let source = "The formula is $E = mc^2$.\n"
 
-        let doc = Document(source: source)
+        let doc = simpleDocument(source)
         let p = lineParser
         let (nodes, cursor) = try parse(p, doc)
         expect(nodes).to(haveCount(3))
@@ -82,7 +82,7 @@ class SpanWithDelimitersTests: XCTestCase {
     func testNested1() throws {
         let source = "*~**foo**~*"
 
-        let doc = Document(source: source)
+        let doc = simpleDocument(source)
         let p = lineParser
         let (nodes, cursor) = try parse(p, doc)
         expect(nodes).to(haveCount(1))
@@ -104,7 +104,7 @@ class SpanWithDelimitersTests: XCTestCase {
     func testNested2() throws {
         let source = "From *~20* to *~30*."
 
-        let doc = Document(source: source)
+        let doc = simpleDocument(source)
     let p = lineParser
         let (nodes, cursor) = try parse(p, doc)
         expect(nodes).to(haveCount(5))
@@ -127,7 +127,7 @@ class SpanWithDelimitersTests: XCTestCase {
     func testNested3() throws {
         let source = "*~20*x*30~*"
 
-        let doc = Document(source: source)
+        let doc = simpleDocument(source)
         let p = lineParser
         let (nodes, cursor) = try parse(p, doc)
         expect(nodes).to(haveCount(1))
@@ -152,7 +152,7 @@ class SpanWithDelimitersTests: XCTestCase {
     func testNestedRaw1() throws {
         let source = "*~*"
 
-        let doc = Document(source: source)
+        let doc = simpleDocument(source)
         let p = lineParser
         let (nodes, cursor) = try parse(p, doc)
         expect(nodes).to(haveCount(1))
@@ -173,7 +173,7 @@ class SpanWithDelimitersTests: XCTestCase {
     func testNestedRaw2() throws {
         let source = "*~*~"
 
-        let doc = Document(source: source)
+        let doc = simpleDocument(source)
     let p = lineParser
         let (nodes, cursor) = try parse(p, doc)
         expect(nodes).to(haveCount(2))
@@ -197,7 +197,7 @@ class SpanWithDelimitersTests: XCTestCase {
     func testNestedRaw3() throws {
         let source = "*~*~*"
 
-        let doc = Document(source: source)
+        let doc = simpleDocument(source)
         let p = lineParser
         let (nodes, cursor) = try parse(p, doc)
         expect(nodes).to(haveCount(1))
@@ -222,7 +222,7 @@ class SpanWithDelimitersTests: XCTestCase {
     func testNestedRaw4() throws {
         let source = "*~*~*~"
 
-        let doc = Document(source: source)
+        let doc = simpleDocument(source)
         let p = lineParser
         let (nodes, cursor) = try parse(p, doc)
         expect(nodes).to(haveCount(2))
@@ -250,7 +250,7 @@ class SpanWithDelimitersTests: XCTestCase {
     func testRaw1() throws {
         let source = "brackets: ~[~ and ~]~"
 
-        let doc = Document(source: source)
+        let doc = simpleDocument(source)
         let p = lineParser
         let (nodes, cursor) = try parse(p, doc)
         expect(nodes).to(haveCount(4))
@@ -270,7 +270,7 @@ class SpanWithDelimitersTests: XCTestCase {
     func testRaw2() throws {
         let source = "tilde: [raw:~]"
 
-        let doc = Document(source: source)
+        let doc = simpleDocument(source)
         let p = lineParser
         let (nodes, cursor) = try parse(p, doc)
         expect(nodes).to(haveCount(2))

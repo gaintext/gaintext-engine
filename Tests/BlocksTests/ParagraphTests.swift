@@ -18,28 +18,28 @@ import Nimble
 class ParagraphTests: XCTestCase {
 
     func testReject1() throws {
-        let doc = Document(source: "")
+        let doc = simpleDocument("")
         let p = paragraph
 
         expect { try p.parse(doc.start()) }.to(throwError())
     }
 
     func testReject2() throws {
-        let doc = Document(source: "\n")
+        let doc = simpleDocument("\n")
         let p = paragraph
 
         expect { try p.parse(doc.start()) }.to(throwError())
     }
 
     func testReject3() throws {
-        let doc = Document(source: "\n\n")
+        let doc = simpleDocument("\n\n")
         let p = paragraph
 
         expect { try p.parse(doc.start()) }.to(throwError())
     }
 
     func testSingleLine1() throws {
-        let doc = Document(source: "a\n")
+        let doc = simpleDocument("a\n")
         let p = paragraph
 
         let (nodes, cursor) = try parse(p, doc)
@@ -59,7 +59,7 @@ class ParagraphTests: XCTestCase {
     }
 
     func testSingleLine2() throws {
-        let doc = Document(source: "a\n\n")
+        let doc = simpleDocument("a\n\n")
         let p = paragraph
 
         let (nodes, cursor) = try parse(p, doc)
@@ -79,7 +79,13 @@ class ParagraphTests: XCTestCase {
     }
 
     func testMultiLine1() throws {
-        let doc = Document(source: "a\nb\nc\n")
+        let doc = simpleDocument(
+            """
+            a
+            b
+            c
+
+            """)
         let p = paragraph
 
         let (nodes, cursor) = try parse(p, doc)
@@ -99,7 +105,13 @@ class ParagraphTests: XCTestCase {
     }
 
     func testMultiLine2() throws {
-        let doc = Document(source: "a\nb\n\nc\n")
+        let doc = simpleDocument(
+            """
+            a
+            b
+
+            c
+            """)
         let p = list(paragraph, separator: skipEmptyLines)
 
         let (nodes, cursor) = try parse(p, doc)
@@ -131,7 +143,13 @@ class ParagraphTests: XCTestCase {
     }
 
     func testWhitespaceSeparated1() throws {
-        let doc = Document(source: "a\nb\n   c\nd\n")
+        let doc = simpleDocument(
+            """
+            a
+            b
+               c
+            d
+            """)
         let p = list(paragraph, separator: skipEmptyLines)
 
         let (nodes, cursor) = try parse(p, doc)
@@ -151,7 +169,12 @@ class ParagraphTests: XCTestCase {
     }
 
     func testWhitespaceSeparated2() throws {
-        let doc = Document(source: "a\nb\n - c\n")
+        let doc = simpleDocument(
+            """
+            a
+            b
+             - c
+            """)
 
         let nodes = doc.parse()
         expect(nodes).to(haveCount(2))
@@ -168,7 +191,12 @@ class ParagraphTests: XCTestCase {
     }
 
     func testListSeparated1() throws {
-        let doc = Document(source: "a\nb\n- c\n")
+        let doc = simpleDocument(
+            """
+            a
+            b
+            - c
+            """)
 
         let nodes = doc.parse()
         expect(nodes).to(haveCount(2))
@@ -185,7 +213,12 @@ class ParagraphTests: XCTestCase {
     }
 
     func testListSeparated2() throws {
-        let doc = Document(source: "a\nb\n* c\n")
+        let doc = simpleDocument(
+            """
+            a
+            b
+            * c
+            """)
 
         let nodes = doc.parse()
         expect(nodes).to(haveCount(2))

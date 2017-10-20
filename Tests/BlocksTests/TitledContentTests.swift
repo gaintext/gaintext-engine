@@ -18,21 +18,21 @@ import Nimble
 class DetectSectionStartTests: XCTestCase {
 
     func testSuccess() throws {
-        let doc = Document(source: "abc\n===\n")
+        let doc = simpleDocument("abc\n===\n")
         let p = detectSectionStart()
 
         let _ = try parse(p, doc)
     }
 
     func testSpecificUnderline() throws {
-        let doc = Document(source: "abc\n===\n")
+        let doc = simpleDocument("abc\n===\n")
         let p = detectSectionStart(underlineChars: "=")
 
         let _ = try parse(p, doc)
     }
 
     func testWrongUnderline() throws {
-        let doc = Document(source: "abc\n===\n")
+        let doc = simpleDocument("abc\n===\n")
         let p = detectSectionStart(underlineChars: "-")
 
         expect(try p.parse(doc.start())).to(throwError())
@@ -50,21 +50,51 @@ class DetectSectionStartTests: XCTestCase {
 class TitledContentTests: XCTestCase {
 
     func testEmpty() throws {
-        let doc = Document(source: "")
+        let doc = simpleDocument("")
         let p = titledContent
 
         expect(try p.parse(doc.start())).to(throwError())
     }
 
     func testNoHeader() throws {
-        let doc = Document(source: "abc\ndef\n\n")
+        let doc = simpleDocument("abc\ndef\n\n")
         let p = titledContent
 
         expect(try p.parse(doc.start())).to(throwError())
     }
 
+    func testEmptySection0() throws {
+        let doc = simpleDocument(
+            """
+            abc
+            ===
+            """)
+        let p = titledContent
+
+        let (nodes, cursor) = try parse(p, doc)
+        expect(nodes).to(haveCount(1))
+        let node = nodes[0]
+
+        expect(node.document) == doc
+        expect(node.sourceRange) == "1:1..2:3"
+        expect(node.nodeType.name) == "section"
+        expect(node.children).to(haveCount(1))
+
+        let title = node.children[0]
+        expect(title.document) == doc
+        expect(title.sourceRange) == "1:1..1:3"
+        expect(title.nodeType.name) == "gaintext-title"
+
+        expect(cursor.atEndOfBlock) == true
+    }
+
     func testEmptySection1() throws {
-        let doc = Document(source: "abc\n===\n")
+        let doc = simpleDocument(
+            """
+            abc
+            ===
+
+            """)
         let p = titledContent
 
         let (nodes, cursor) = try parse(p, doc)
@@ -85,7 +115,12 @@ class TitledContentTests: XCTestCase {
     }
 
     func testEmptySection2() throws {
-        let doc = Document(source: "abc\n===\n\n")
+        let doc = simpleDocument("""
+            abc
+            ===
+
+
+            """)
         let p = titledContent
 
         let (nodes, cursor) = try parse(p, doc)
@@ -106,7 +141,11 @@ class TitledContentTests: XCTestCase {
     }
 
     func testDashedLine() throws {
-        let doc = Document(source: "abcde\n= = =")
+        let doc = simpleDocument(
+            """
+            abcde
+            = = =
+            """)
         let p = titledContent
 
         let (nodes, cursor) = try parse(p, doc)
@@ -117,7 +156,13 @@ class TitledContentTests: XCTestCase {
     }
 
     func testEmptyElement() throws {
-        let doc = Document(source: "test: abc\n===\n\n")
+        let doc = simpleDocument(
+            """
+            test: abc
+            ===
+
+
+            """)
         doc.global.register(block: ElementType("test"))
         let p = titledContent
 
@@ -139,7 +184,12 @@ class TitledContentTests: XCTestCase {
     }
 
     func testSimpleSection() throws {
-        let doc = Document(source: "abc\n===\n\ndef\n")
+        let doc = simpleDocument("""
+            abc
+            ===
+
+            def
+            """)
         let p = titledContent
 
         let (nodes, cursor) = try parse(p, doc)
@@ -174,7 +224,16 @@ class TitledContentTests: XCTestCase {
     }
 
     func testBiggerSection() throws {
-        let doc = Document(source: "abc\n===\n\ndef\n\nghi\njkl\n")
+        let doc = simpleDocument(
+            """
+            abc
+            ===
+
+            def
+
+            ghi
+            jkl
+            """)
         let p = titledContent
 
         let (nodes, cursor) = try parse(p, doc)
@@ -203,7 +262,17 @@ class TitledContentTests: XCTestCase {
     }
 
     func testHierarchical() throws {
-        let doc = Document(source: "abc\n===\n\ndef\n---\n\nghi\n===\n")
+        let doc = simpleDocument(
+            """
+            abc
+            ===
+
+            def
+            ---
+
+            ghi
+            ===
+            """)
         let p = list(titledContent, separator: skipEmptyLines)
 
         let (nodes, cursor) = try parse(p, doc)
@@ -230,7 +299,11 @@ class TitledContentTests: XCTestCase {
     }
 
     func testId() throws {
-        let doc = Document(source: "section #name: abc\n===\n")
+        let doc = simpleDocument(
+            """
+            section #name: abc
+            ===
+            """)
         let p = titledContent
 
         let (nodes, tail) = try parse(p, doc)
@@ -256,7 +329,11 @@ class TitledContentTests: XCTestCase {
     }
 
     func testClass() throws {
-        let doc = Document(source: "section .name: abc\n===\n")
+        let doc = simpleDocument(
+            """
+            section .name: abc
+            ===
+            """)
         let p = titledContent
 
         let (nodes, tail) = try parse(p, doc)
@@ -282,7 +359,13 @@ class TitledContentTests: XCTestCase {
     }
 
     func testCombination() throws {
-        let doc = Document(source: "section #name x=y: title text\n===\n\ncontent\n")
+        let doc = simpleDocument(
+            """
+            section #name x=y: title text
+            ===
+
+            content
+            """)
         let p = titledContent
 
         let (nodes, tail) = try parse(p, doc)

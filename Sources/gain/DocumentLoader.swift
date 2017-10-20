@@ -9,10 +9,12 @@
 //
 
 import Foundation
+import Engine
 
-do {
-    let command = GainCommand(args: CommandLine.arguments)
-    try command.run()
-} catch let e {
-    print("error:", e)
+struct DocumentLoader: DocumentLoaderDelegate {
+
+    func load(fromFile name: String, scope: Scope) throws -> Document {
+        let text = try NSString(contentsOfFile: name, encoding: String.Encoding.utf8.rawValue)
+        return Document(source: String(text), global: scope, loader: self)
+    }
 }

@@ -28,3 +28,7 @@ func parse<Result>(_ p: Parser<Result>, _ cursor: Cursor, file: FileString = #fi
 func parse<Result>(_ p: Parser<Result>, _ doc: Document, file: FileString = #file, line: UInt = #line) throws -> (Result, Cursor) {
     return try report(try p.parse(doc.start()), file: file, line: line)
 }
+
+func ==(lhs: Expectation<Substring>, rhs: String) {
+    lhs == rhs[...]
+}

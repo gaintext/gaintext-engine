@@ -27,7 +27,7 @@ class CachedParserTests: XCTestCase {
     }
 
     func testCachedParser() throws {
-        let doc = Document(source: "abc")
+        let doc = simpleDocument("abc")
         let p = cached(count(textNode(spanning: literal("abc"))))
 
         let (result1, tail1) = try parse(p, doc)
@@ -42,7 +42,7 @@ class CachedParserTests: XCTestCase {
     }
 
     func testRecursive1() throws {
-        let doc = Document(source: "")
+        let doc = simpleDocument("")
         var p: Parser<[Node]>!
         let c = cached(count(textNode(spanning: literal("abc"))))
         p = c <+> lazy(p) <|> c
@@ -51,7 +51,7 @@ class CachedParserTests: XCTestCase {
     }
 
     func testRecursive2() throws {
-        let doc = Document(source: "abcdef")
+        let doc = simpleDocument("abcdef")
         var p: Parser<[Node]>!
         let c = cached(count(textNode(spanning: literal("abc"))))
         p = c <+> lazy(p) <|> c
@@ -63,7 +63,7 @@ class CachedParserTests: XCTestCase {
     }
 
     func testRecursive3() throws {
-        let doc = Document(source: "abcabcdef")
+        let doc = simpleDocument("abcabcdef")
         var p: Parser<[Node]>!
         let c = cached(count(textNode(spanning: literal("abc"))))
         p = c <+> lazy(p) <|> c

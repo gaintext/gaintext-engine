@@ -56,7 +56,7 @@ public func node(type: NodeType, keepEmpty: Bool = false) -> (Parser<[Node]>) ->
     }
 }
 
-private let textNodeType = NodeType(name: "text")
+public let textNodeType = NodeType(name: "text")
 
 /// Helper to create a text node
 public func textNode(start: Position, end: Cursor) -> Node {

@@ -16,6 +16,7 @@ public func textWithMarkupParser(markup: Parser<[Node]>) -> SpanParser {
         Parser { input in
             var startOfText = input.position
             var cursor = input
+            let element = input.element
 
             do { // immediately return when endMarker matches
                 return try (endMarker *> pure([])).parse(cursor)
@@ -44,6 +45,7 @@ public func textWithMarkupParser(markup: Parser<[Node]>) -> SpanParser {
                     let (_, tail) = try endMarker.parse(cursor)
                     addTextNode()
 
+                    assert(tail.element === element)
                     return (nodes, tail)
                 } catch is ParserError {}
             }

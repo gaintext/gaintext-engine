@@ -1,3 +1,4 @@
+
 //
 // GainText parser
 // Copyright Martin Waitz
@@ -18,22 +19,22 @@ import Nimble
 class ListItemTests: XCTestCase {
 
     func testEmpty1() throws {
-        let doc = Document(source: "")
+        let doc = simpleDocument("")
         expect {try listItem.parse(doc.start())}.to(throwError())
     }
 
     func testEmpty2() throws {
-        let doc = Document(source: "\n")
+        let doc = simpleDocument("\n")
         expect {try listItem.parse(doc.start())}.to(throwError())
     }
 
     func testNoWhitespace() throws {
-        let doc = Document(source: "-abc\n")
+        let doc = simpleDocument("-abc\n")
         expect {try listItem.parse(doc.start())}.to(throwError())
     }
 
     func testSimple() throws {
-        let doc = Document(source: "- item1\n")
+        let doc = simpleDocument("- item1\n")
 
         let (nodes, cursor) = try parse(listItem, doc)
         expect(nodes).to(haveCount(1))
@@ -53,7 +54,11 @@ class ListItemTests: XCTestCase {
     }
 
     func testMultiline1() throws {
-        let doc = Document(source: "- line one\n  line two")
+        let doc = simpleDocument(
+            """
+            - line one
+              line two
+            """)
 
         let (nodes, cursor) = try parse(listItem, doc)
         expect(nodes).to(haveCount(1))
@@ -75,7 +80,11 @@ class ListItemTests: XCTestCase {
     }
 
     func testSimpleList1() throws {
-        let doc = Document(source: "- item1\n- item2\n")
+        let doc = simpleDocument(
+            """
+            - item1
+            - item2
+            """)
 
         let (nodes, cursor) = try parse(listParser, doc)
         expect(nodes).to(haveCount(1))
@@ -100,7 +109,11 @@ class ListItemTests: XCTestCase {
     }
 
     func testSimpleIndentedList1() throws {
-        let doc = Document(source: " - item1\n - item2\n")
+        let doc = simpleDocument(
+            """
+             - item1
+             - item2
+            """)
 
         let (nodes, cursor) = try parse(listParser, doc)
         expect(nodes).to(haveCount(1))
@@ -125,7 +138,14 @@ class ListItemTests: XCTestCase {
     }
 
     func testNestedList1() throws {
-        let doc = Document(source: "- item1\n  - item 1a\n  - item 1b\n- item2\n")
+        let doc = simpleDocument(
+            """
+            - item1
+              - item 1a
+              - item 1b
+            - item2
+
+            """)
 
         let (nodes, cursor) = try parse(listParser, doc)
         expect(nodes).to(haveCount(1))

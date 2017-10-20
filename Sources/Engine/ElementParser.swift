@@ -13,29 +13,31 @@ import Runes
 
 public func elementCreateBlockParser(name: String) -> Parser<()> {
     return Parser { input in
-        let scope = input.scope
-        assert(scope.element == nil)
+        assert(input.element == nil)
 
+        let scope = input.scope
         guard let element = scope.block(name: name) else {
             throw ParserError.notFound(position: input.position)
         }
-        scope.element = element
+        var cursor = input
+        cursor.element = element
 
-        return ((), input)
+        return ((), cursor)
     }
 }
 
 public func elementCreateMarkupParser(name: String) -> Parser<()> {
     return Parser { input in
-        let scope = input.scope
-        assert(scope.element == nil)
+        assert(input.element == nil)
 
+        let scope = input.scope
         guard let element = scope.markup(name: name) else {
             throw ParserError.notFound(position: input.position)
         }
-        scope.element = element
+        var cursor = input
+        cursor.element = element
 
-        return ((), input)
+        return ((), cursor)
     }
 }
 
@@ -58,7 +60,7 @@ public let elementStartMarkupParser = (identifier >>- elementCreateMarkupParser)
 /// Parser adding the specified attribute to the currently parsed element.
 public func elementNodeAttribute(_ key: String, value: String) -> Parser<()> {
     return Parser { input in
-        let element = input.scope.element!
+        let element = input.element!
         element.addNodeAttribute(key, value: value)
         return ((), input)
     }
@@ -67,7 +69,7 @@ public func elementNodeAttribute(_ key: String, value: String) -> Parser<()> {
 /// Makes a parser store its result as the current element's title.
 public func elementTitle(_ p: Parser<[Node]>) -> Parser<()> {
     return Parser { input in
-        let element = input.scope.element!
+        let element = input.element!
         let (content, tail) = try p.parse(input)
         element.title += content
         return ((), tail)
@@ -76,7 +78,7 @@ public func elementTitle(_ p: Parser<[Node]>) -> Parser<()> {
 /// Makes a parser store its result as the current element's title.
 public func elementAttributes(_ p: Parser<[Node]>) -> Parser<()> {
     return Parser { input in
-        let element = input.scope.element!
+        let element = input.element!
         let (content, tail) = try p.parse(input)
         element.attributes += content
         return ((), tail)
@@ -107,8 +109,9 @@ public let elementTitleLine = titleNode >>- elementTitle
 /// Makes a parser store its result in the current element's body.
 public func elementContent(_ p: Parser<[Node]>) -> Parser<()> {
     return Parser { input in
-        let element = input.scope.element!
+        let element = input.element!
         let (content, tail) = try p.parse(input)
+        assert(tail.element === element)
         element.body += content
         return ((), tail)
     }
@@ -131,9 +134,11 @@ public func elementSpanBody(until endMarker: Parser<String>) -> Parser<()> {
 public func subBlock<Result>(_ p: Parser<Result>) -> ([Line]) -> Parser<Result> {
     return { lines in
         Parser<Result> { outside in
-            let element = outside.scope.element!
+            let element = outside.element!
             let inside = element.childCursor(block: lines, parent: outside)
+            assert(inside.element === element)
             let (result, tail) = try p.parse(inside)
+            assert(tail.element === element)
             // content parser has to consume the complete block
             assert(tail.atEndOfBlock)
             return (result, outside)
@@ -142,37 +147,26 @@ public func subBlock<Result>(_ p: Parser<Result>) -> ([Line]) -> Parser<Result> 
 }
 
 /// Create a node from the current element.
-func elementNodeParser(_ p: Parser<()>) -> Parser<[Node]> {
+///
+/// Expects the parser `p` to set `cursor.element` and returns
+/// a node for this element.
+/// Does not change the parent `cursor.element`.
+public func element(_ p: Parser<()>) -> Parser<[Node]> {
     return Parser { input in
         let start = input.position
-        let scope = input.scope
-        assert(scope.element == nil)
+        let lastElement = input.element
 
-        let (_, tail) = try p.parse(input)
+        var cursor = input
+        cursor.element = nil
 
-        assert(scope.element != nil) // TBD: assert or guard?
-        guard let element = scope.element else {
-            throw ParserError.notFound(position: input.position)
-        }
+        let (_, tail) = try p.parse(cursor)
+
+        let element = tail.element!
         let node = element.createNode(start: start, end: tail)
 
-        return ([node], tail)
-    }
-}
+        cursor = tail
+        cursor.element = lastElement
 
-/// Executes a parser in a separate child scope
-func newScopeParser<Result>(_ p: Parser<Result>) -> Parser<Result> {
-    return Parser { input in
-        let scope = input.scope
-        var cursor = input
-        cursor.scope = Scope(parent: scope)
-        cursor.scope.element = nil
-        var (result, tail) = try p.parse(cursor)
-        tail.scope = scope
-        return (result, tail)
+        return ([node], cursor)
     }
-}
-
-public func element(_ p: Parser<()>) -> Parser<[Node]> {
-    return newScopeParser(elementNodeParser(p))
 }

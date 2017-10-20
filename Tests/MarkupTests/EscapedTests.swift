@@ -19,7 +19,7 @@ import Nimble
 class EscapedTests: XCTestCase {
 
     func testRawElement() throws {
-        let doc = Document(source: "\\[raw:]\n")
+        let doc = simpleDocument("\\[raw:]\n")
         let p = lineParser
 
         let (nodes, cursor) = try parse(p, doc)
@@ -40,7 +40,7 @@ class EscapedTests: XCTestCase {
     }
 
     func testEOL() throws {
-        let doc = Document(source: "\\\n")
+        let doc = simpleDocument("\\\n")
         let p = lineParser
 
         let (nodes, cursor) = try parse(p, doc)
